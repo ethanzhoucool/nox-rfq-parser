@@ -12,6 +12,7 @@ These are messy buyer RFQs and POs addressed to Nox Metals (sales@noxmetals.co).
 | `06-scanned-note.png` (+ `.pdf`, image only) | A photo of a handwritten memo-pad note, plus the same note as a scanned PDF with no text layer | Vision/OCR, "(3) 6061-T651" qty-first format, a **scribbled-out line** that must not be extracted, 5083 with no temper (H116 vs H321), and a **tight date** ("need Mon AM!!" = 10/05) |
 | `07-ambiguous-bar.txt` | A short email from a marine fabricator | Bar vs plate: "1x6x48 bar" is a Rectangle (flat) bar with height and width; "2 x 2 x 24" with no form is probably Square bar. No tempers. "Domestic" is not DFARS. "End of month" |
 | `08-round-bar.txt` | A round-bar RFQ with shop shorthand | `rd`/`dia`/`lg`, per-line cut tolerances (`+.06/-0`, `+/-.03`) that go to job_detail, **12 ft converted to 144"**, and 2024-T351 bar not in the catalog (only T3511 is) |
+| `09-launch-vehicle-po.pdf` | A two-page PO from a fictional launch-vehicle maker, with an original logo drawn in code | Revision A changes line 20 qty (10 to 12); DFARS on **line 40 only** (Inconel 718, a true specialty metal); 2219-T87 and 718 aren't stocked, so both route to sales; line 50 temper is "per drawing"; AS9102 FAI and export-control clauses are noise for extraction |
 
 The ground truth is in `expected/<basename>.json`. Each file has `expected` (a partial `ExtractedRfq` with plain values, not `Field` wrappers), `expected_flags` (`line_ref`, `field`, `severity`, `why`), and `notes` explaining what makes the sample hard. Both 04 files share `04-bom-export.json`, and both 06 files share `06-scanned-note.json`.
 
@@ -23,8 +24,9 @@ How to score against it:
 
 ## Demo order
 
-For a live 2-minute demo, use these three:
+For a live 2-minute demo, open with the launch PO, then use these three:
 
+0. **`09-launch-vehicle-po.pdf`**: the opener. It's a space-industry PO with a revision, a nickel-alloy line under DFARS and two lines Nox doesn't stock. Watch it use qty 12 rather than the old 10, keep DFARS on line 40 only, and route 2219 and 718 to sales.
 1. **`02-aerospace-po.pdf`**: the main demo story. A real-looking PO comes in, and out come 4 lines with AMS/QQ certs, DFARS on every line, the "DFARS on 7050, confirm" warning, and a red/yellow "need-by 10/05 is tight" flag, then the dry-run payload.
 2. **`06-scanned-note.png`**: the crowd-pleaser. It reads a handwritten photo, skips the crossed-out line, and asks "5083: H116 or H321?"
 3. **`05-rfq-out-of-catalog.pdf`**: the guardrails. It blocks qty 250 (with a suggestion to split the line) and routes the 17-4 PH stainless line to sales instead of forcing it into an aluminum alloy.
@@ -33,7 +35,7 @@ If there's time, `03-forwarded-thread.eml` is the best follow-up: it shows the p
 
 ## Regenerating
 
-`_generator/generate.py` builds the PDFs, the XLSX/CSV and the PNG. `_generator/expected.py` writes `expected/*.json`. The text samples (01, 03, 07, 08) are hand-written. Keep the generator dependencies out of the project root:
+`_generator/generate.py` builds the PDFs, the XLSX/CSV and the PNG. `_generator/expected.py` writes `expected/*.json`. The text samples (01, 03, 07, 08) are hand-written. Sample 09's logo is drawn with reportlab vector shapes (`corvane_logo()`). Keep the generator dependencies out of the project root:
 
 ```bash
 python3 -m venv /tmp/rfq-samples-venv

@@ -209,6 +209,35 @@ samples["08-round-bar"] = {
   "notes": "Shorthand: 'rd' = round, 'lg' = long, 'dia' = diameter, 'w/' = with. Cut tolerances differ per line ('+.06/-0' asymmetric, '+/-.03' symmetric, none on line 2) and have no API field, so they go in job_detail. Line 2 length is in FEET (12 ft = 144 in). Line 3 uses a temper that is real for rolled/drawn 2024 bar but isn't in Nox's bar catalog (T3511). Need-by Wed 10/7 is 3 business days out, so not tight (boundary check: < today+2bd = 10/06). Job 7731 is in the subject.",
 }
 
+samples["09-launch-vehicle-po"] = {
+  "expected": {
+    "document_type": "po", "po_number": "CLS-PO-26-03318", "job_number": "26-2210-MFG",
+    "customer": cust("Priya Raman", "Corvane Launch Systems, Inc.", "praman@corvanelaunch.com", "(720) 555-0164"),
+    "ship_to_address": "Corvane Launch Systems, Inc., Building 4 Receiving, Door 12, 11920 E. Corvane Way, Englewood, CO 80112",
+    "bill_to_address": "Corvane Launch Systems, Inc., Accounts Payable, 11850 E. Corvane Way, Englewood, CO 80112",
+    "required_date": "2026-10-16", "mill_certs_required": True,
+    "lines": [
+      L("10", "2219", "T87", "Plate", "Plate", 3, t=1.0, w=48, l=96,
+        certs=[("ASTM", "ASTM B209")], pn="MS-2219-T87-1000"),
+      L("20", "7075", "T7351", "Plate", "Plate", 12, t=1.5, w=12, l=24,
+        certs=[("AMS", "AMS 4078")], pn="MS-7075-T7351-1500", tol="+.060/-0"),
+      L("30", "6061", "T6511", "Bar", "Round", 20, d=3.0, l=12,
+        certs=[("ASTM", "ASTM B221")], pn="MS-6061-T6511-RB3000"),
+      L("40", "718", None, "Bar", "Round", 6, d=1.25, l=36, compliance="dfars",
+        certs=[("AMS", "AMS 5662")], pn="MS-718-RB1250"),
+      L("50", "7050", None, "Plate", "Plate", 2, t=3.0, w=18, l=30, pn="MS-7050-PL3000"),
+    ],
+  },
+  "expected_flags": [
+    F("10", "alloy", "error", "2219-T87 (cryotank alloy) is not in Nox's plate catalog. Route to sales; don't quote."),
+    F("40", "alloy", "error", "Inconel 718 bar is outside the aluminum catalog (Nox quotes nickel alloys by request only). Route to sales."),
+    F("40", "compliance", "error", "DFARS 252.225-7009 on a line that isn't stocked. Nickel alloys are true DFARS specialty metals, so country of melt must be certified."),
+    F("50", "temper", "warning", "Temper is 'per DWG 400-1182', which isn't in the document. 7050 plate is stocked only as T7451; suggest it and confirm."),
+    F("20", "quantity", "info", "Revision A changed line 20 qty from 10 to 12. Use 12."),
+  ],
+  "notes": "Fictional launch-vehicle company. Revision A changed line 20 qty (10 to 12) and the PO says so twice; the extractor must use 12. DFARS applies to line 40 only (note 4), not order-wide: this is the opposite of sample 02 and tests that compliance isn't spread to every line. 2219 and 718 are realistic launch materials Nox doesn't stock. Line 50's temper is only on a drawing that isn't attached. 'EAR99 (material)' and the export-control clause are about drawings, not a compliance value. The program/charge number 26-2210-MFG is the closest thing to a job number. Page 2 is T&C boilerplate.",
+}
+
 for name, body in samples.items():
     (OUT / f"{name}.json").write_text(json.dumps(body, indent=2) + "\n")
     print("wrote", name)

@@ -1,0 +1,465 @@
+{
+  "extraction": {
+    "rfq": {
+      "document_type": "rfq",
+      "po_number": {
+        "value": null,
+        "confidence": "low",
+        "source": null
+      },
+      "job_number": {
+        "value": null,
+        "confidence": "low",
+        "source": null
+      },
+      "customer": {
+        "name": {
+          "value": "Kevin Marsh",
+          "confidence": "high",
+          "source": "Buyer Kevin Marsh"
+        },
+        "company": {
+          "value": "Ridgeline Defense Components",
+          "confidence": "high",
+          "source": "Ridgeline Defense Components"
+        },
+        "email": {
+          "value": "kmarsh@ridgeline-dc.com",
+          "confidence": "high",
+          "source": "kmarsh@ridgeline-dc.com"
+        },
+        "phone": {
+          "value": "(256) 555-0173",
+          "confidence": "high",
+          "source": "Direct: (256) 555-0173"
+        }
+      },
+      "ship_to_address": {
+        "value": "Ridgeline Defense Components\nShipping & Receiving\n1850 Sparkman Dr NW\nHuntsville, AL 35816",
+        "confidence": "high",
+        "source": "Ridgeline Defense Components\nShipping & Receiving\n1850 Sparkman Dr NW\nHuntsville, AL 35816"
+      },
+      "bill_to_address": {
+        "value": null,
+        "confidence": "low",
+        "source": null
+      },
+      "required_date": {
+        "value": null,
+        "confidence": "low",
+        "source": null
+      },
+      "mill_certs_required": {
+        "value": true,
+        "confidence": "high",
+        "source": "MILL TEST REPORTS REQUIRED."
+      },
+      "lines": [
+        {
+          "ref": "1",
+          "customer_part_number": {
+            "value": "RDC-10442",
+            "confidence": "high",
+            "source": "RDC-10442"
+          },
+          "description_raw": "PLATE, AL 6061-T651\n.625 X 12.00 X 12.00\nAMS 4027",
+          "alloy": {
+            "value": "6061",
+            "confidence": "high",
+            "source": "6061-T651"
+          },
+          "temper": {
+            "value": "T651",
+            "confidence": "high",
+            "source": "6061-T651"
+          },
+          "product_type": {
+            "value": "Plate",
+            "confidence": "high",
+            "source": "PLATE, AL 6061-T651"
+          },
+          "shape": {
+            "value": "Plate",
+            "confidence": "high",
+            "source": "PLATE, AL 6061-T651"
+          },
+          "thickness_in": {
+            "value": 0.625,
+            "confidence": "medium",
+            "source": ".625 X 12.00 X 12.00"
+          },
+          "width_in": {
+            "value": 12,
+            "confidence": "medium",
+            "source": ".625 X 12.00 X 12.00"
+          },
+          "length_in": {
+            "value": 12,
+            "confidence": "medium",
+            "source": ".625 X 12.00 X 12.00"
+          },
+          "height_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "diameter_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "outer_diameter_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "outer_dimension_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "wall_thickness_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "quantity": {
+            "value": 250,
+            "confidence": "high",
+            "source": "250 EA"
+          },
+          "cut_tolerance": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "compliance": {
+            "value": "dfars",
+            "confidence": "high",
+            "source": "ALL MATERIAL MUST BE DFARS COMPLIANT (MELTED IN USA OR QUALIFYING COUNTRY)."
+          },
+          "certifications": [
+            {
+              "family": "AMS",
+              "designation": "AMS 4027",
+              "source": "AMS 4027"
+            }
+          ],
+          "notes": null
+        },
+        {
+          "ref": "2",
+          "customer_part_number": {
+            "value": "RDC-20871",
+            "confidence": "high",
+            "source": "RDC-20871"
+          },
+          "description_raw": "BAR, ROUND, CRES 17-4PH, COND H1025\n1.500 DIA X 12.00 LG\nAMS 5643",
+          "alloy": {
+            "value": "17-4PH",
+            "confidence": "high",
+            "source": "CRES 17-4PH"
+          },
+          "temper": {
+            "value": "H1025",
+            "confidence": "high",
+            "source": "COND H1025"
+          },
+          "product_type": {
+            "value": "Bar",
+            "confidence": "high",
+            "source": "BAR, ROUND"
+          },
+          "shape": {
+            "value": "Round",
+            "confidence": "high",
+            "source": "BAR, ROUND"
+          },
+          "thickness_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "width_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "length_in": {
+            "value": 12,
+            "confidence": "medium",
+            "source": "1.500 DIA X 12.00 LG"
+          },
+          "height_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "diameter_in": {
+            "value": 1.5,
+            "confidence": "medium",
+            "source": "1.500 DIA X 12.00 LG"
+          },
+          "outer_diameter_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "outer_dimension_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "wall_thickness_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "quantity": {
+            "value": 20,
+            "confidence": "high",
+            "source": "20 EA"
+          },
+          "cut_tolerance": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "compliance": {
+            "value": "dfars",
+            "confidence": "high",
+            "source": "ALL MATERIAL MUST BE DFARS COMPLIANT (MELTED IN USA OR QUALIFYING COUNTRY)."
+          },
+          "certifications": [
+            {
+              "family": "AMS",
+              "designation": "AMS 5643",
+              "source": "AMS 5643"
+            }
+          ],
+          "notes": "17-4PH stainless steel, condition H1025; outside Nox's aluminum catalog. Partial quotes are accepted."
+        },
+        {
+          "ref": "3",
+          "customer_part_number": {
+            "value": "RDC-30115",
+            "confidence": "high",
+            "source": "RDC-30115"
+          },
+          "description_raw": "PLATE, AL 7075-T7351\n1.000 X 6.00 X 12.00\nAMS 4078",
+          "alloy": {
+            "value": "7075",
+            "confidence": "high",
+            "source": "7075-T7351"
+          },
+          "temper": {
+            "value": "T7351",
+            "confidence": "high",
+            "source": "7075-T7351"
+          },
+          "product_type": {
+            "value": "Plate",
+            "confidence": "high",
+            "source": "PLATE, AL 7075-T7351"
+          },
+          "shape": {
+            "value": "Plate",
+            "confidence": "high",
+            "source": "PLATE, AL 7075-T7351"
+          },
+          "thickness_in": {
+            "value": 1,
+            "confidence": "medium",
+            "source": "1.000 X 6.00 X 12.00"
+          },
+          "width_in": {
+            "value": 6,
+            "confidence": "medium",
+            "source": "1.000 X 6.00 X 12.00"
+          },
+          "length_in": {
+            "value": 12,
+            "confidence": "medium",
+            "source": "1.000 X 6.00 X 12.00"
+          },
+          "height_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "diameter_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "outer_diameter_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "outer_dimension_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "wall_thickness_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "quantity": {
+            "value": 40,
+            "confidence": "high",
+            "source": "40 EA"
+          },
+          "cut_tolerance": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "compliance": {
+            "value": "dfars",
+            "confidence": "high",
+            "source": "ALL MATERIAL MUST BE DFARS COMPLIANT (MELTED IN USA OR QUALIFYING COUNTRY)."
+          },
+          "certifications": [
+            {
+              "family": "AMS",
+              "designation": "AMS 4078",
+              "source": "AMS 4078"
+            }
+          ],
+          "notes": null
+        },
+        {
+          "ref": "4",
+          "customer_part_number": {
+            "value": "RDC-30220",
+            "confidence": "high",
+            "source": "RDC-30220"
+          },
+          "description_raw": "BAR, RD, AL 7075-T651\n3.000 DIA X 18.00 LG\nAMS 4122 / AMS-QQ-A-225/9",
+          "alloy": {
+            "value": "7075",
+            "confidence": "high",
+            "source": "7075-T651"
+          },
+          "temper": {
+            "value": "T651",
+            "confidence": "high",
+            "source": "7075-T651"
+          },
+          "product_type": {
+            "value": "Bar",
+            "confidence": "high",
+            "source": "BAR, RD, AL 7075-T651"
+          },
+          "shape": {
+            "value": "Round",
+            "confidence": "high",
+            "source": "BAR, RD, AL 7075-T651"
+          },
+          "thickness_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "width_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "length_in": {
+            "value": 18,
+            "confidence": "medium",
+            "source": "3.000 DIA X 18.00 LG"
+          },
+          "height_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "diameter_in": {
+            "value": 3,
+            "confidence": "medium",
+            "source": "3.000 DIA X 18.00 LG"
+          },
+          "outer_diameter_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "outer_dimension_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "wall_thickness_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "quantity": {
+            "value": 12,
+            "confidence": "high",
+            "source": "12 EA"
+          },
+          "cut_tolerance": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "compliance": {
+            "value": "dfars",
+            "confidence": "high",
+            "source": "ALL MATERIAL MUST BE DFARS COMPLIANT (MELTED IN USA OR QUALIFYING COUNTRY)."
+          },
+          "certifications": [
+            {
+              "family": "AMS",
+              "designation": "AMS 4122",
+              "source": "AMS 4122"
+            },
+            {
+              "family": "QQ",
+              "designation": "QQ-A-225/9",
+              "source": "AMS-QQ-A-225/9"
+            }
+          ],
+          "notes": null
+        }
+      ],
+      "general_notes": "RFQ No. RFQ-26-0912; issued 2026-09-30. Quote due 2026-10-07 at 5:00 PM CT. Delivery required 2 WEEKS ARO; calendar delivery date depends on receipt of order. FOB destination; ship best way, prepaid; terms NET 30; quote validity 60 days minimum. All material must be DFARS compliant; state country of melt in quote. Mill test reports required, with spec and revision shown on certs. Quote each line separately; partial quotes accepted, mark 'NO QUOTE' for unquoted lines. Indicate stock or mill supply and minimum order/cut charges. Do not return drawings. Supplier must be registered in SAM.gov. Resulting orders are subject to RDC-QP-7.4 and stated government flowdown clauses."
+    },
+    "flags": [
+      {
+        "severity": "warning",
+        "line_ref": null,
+        "field": "required_date",
+        "message": "Delivery is requested 2 weeks after receipt of order, but no order receipt date is given. A fixed delivery date cannot be calculated; the quote deadline is not the delivery date.",
+        "suggested_question": "What anticipated order receipt date or firm delivery date should we use for the 2-week ARO requirement?"
+      },
+      {
+        "severity": "warning",
+        "line_ref": null,
+        "field": "dimensions",
+        "message": "Dimensions are interpreted as inches based on the material sizes and formatting, but the RFQ does not explicitly state dimensional units.",
+        "suggested_question": "Please confirm that all material dimensions are in inches."
+      },
+      {
+        "severity": "warning",
+        "line_ref": "2",
+        "field": "alloy",
+        "message": "Line 2 requests 17-4PH stainless steel bar in condition H1025, not aluminum; this is outside Nox's catalog. The RFQ permits partial quotes.",
+        "suggested_question": "May we mark line 2 'NO QUOTE' and quote the aluminum lines only?"
+      }
+    ]
+  },
+  "model": "gpt-6.1-sol",
+  "usage": {
+    "input_tokens": 5929,
+    "output_tokens": 3071
+  },
+  "extraction_ms": 96234,
+  "cached_at": "2026-10-02T22:28:09.712Z"
+}

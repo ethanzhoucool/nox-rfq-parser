@@ -42,7 +42,7 @@ async function authorize(options: { subject?: string; scope?: string; nonce?: st
 
 beforeEach(async () => {
   directory = await mkdtemp(join(tmpdir(), "rfq-chatgpt-"));
-  vi.stubEnv("CHATGPT_AUTH_DIR", directory); vi.stubEnv("OPENAI_ACCESS_TOKEN", "");
+  vi.stubEnv("CHATGPT_AUTH_DIR", directory); vi.stubEnv("EXTRACTION_CACHE_DIR", join(directory, "extractions")); vi.stubEnv("OPENAI_ACCESS_TOKEN", "");
   pair = await generateKeyPair("RS256");
   keys.jwks = { keys: [{ ...await exportJWK(pair.publicKey), kid: "test", alg: "RS256" }] };
   fetchMock = vi.fn(); vi.stubGlobal("fetch", fetchMock);

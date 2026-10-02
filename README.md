@@ -55,11 +55,21 @@ Submission is **dry run by default**. A real `POST /api/v1/rfqs` only goes out w
 
 In every other case (no key, or **Create RFQ (dry run)**), `/api/submit` returns the exact request it would have sent: method, URL, headers with the key redacted to `$NOX_API_KEY`, and the body. The payload panel shows the same request as a copyable `curl`. The `Idempotency-Key` header is a SHA-256 of the body, so a retry or double-click replays the original RFQ and doesn't create a duplicate. After a live submit, the UI polls `GET /api/v1/rfqs/{id}` through `/api/rfqs/[id]` until `pricing_status` leaves `pricing`.
 
+## Extraction cache
+
+A live extraction takes one to two minutes, so the AI output is cached by a SHA-256 of the input's content. Running the same document again returns the cached extraction instantly. Normalization, validation, flags and the payload are still recomputed on every run, so date checks use today's date and catalog changes apply.
+
+- `samples/extractions/` (committed) holds extractions of the bundled demo samples, so the demo works without a connected AI provider.
+- `.cache/extractions/` (gitignored, override with `EXTRACTION_CACHE_DIR`) holds everything else, because uploads can be real customer documents.
+- A cached result says **Cached extraction from** its date and offers **Re-run live**, which calls `/api/parse?fresh=1` to skip the cache and overwrite the entry.
+- Bump `CACHE_VERSION` in `lib/extraction-cache.ts` when the prompt or extraction schema changes.
+- `MOCK_LLM=1` bypasses the cache.
+
 ## Demo script (about 2 minutes)
 
-Run `MOCK_LLM=1 npm run dev` if you have no key. With a key, use the samples:
+The three featured samples are pre-cached, so they work with no key. Run `npm run dev` and use them:
 
-1. **`02-aerospace-po.pdf`**: pick it from *Try a sample*. Four lines come back with AMS/QQ certs, DFARS on every line, and a tight need-by date. Hover any cell to see the verbatim quote it came from. The dot shows confidence.
+1. **`02-aerospace-po.pdf`**: click it in the empty state (it's pre-cached, so it returns instantly). Four lines come back with AMS/QQ certs, DFARS on every line, and a tight need-by date. Hover any cell to see the verbatim quote it came from. A dot marks a medium or low-confidence value.
 2. **Flags**: errors block a line, warnings ask for confirmation (for example "T6 requested on plate; Nox stocks T651"). Click **Copy questions as email** to get a ready-to-send reply to the buyer.
 3. **Fix a cell**: change a temper or a qty. The flags, the excluded lines and the payload all recompute right away. Accept a warning to clear it.
 4. **Payload**: switch between JSON and curl, then click **Create RFQ (dry run)**. With a Nox key, **Submit to Nox** creates the real RFQ and shows Wayne's pricing status.

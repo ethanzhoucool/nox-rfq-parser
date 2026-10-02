@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, WarningOctagon } from "@phosphor-icons/react";
+import { ArrowClockwise, ArrowRight, WarningOctagon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import { ChatgptConnection } from "@/components/ChatgptConnection";
 import { FlagsPanel } from "@/components/FlagsPanel";
@@ -8,7 +8,7 @@ import { HeaderCard } from "@/components/HeaderCard";
 import { InputPanel, type ParseSource } from "@/components/InputPanel";
 import { LineTable } from "@/components/LineTable";
 import { PayloadPanel } from "@/components/PayloadPanel";
-import { StatusChip, cx } from "@/components/ui";
+import { Button, StatusChip, cx } from "@/components/ui";
 import { useRfqEditor } from "@/hooks/useRfqEditor";
 import { ApiError, postJson, requestJson } from "@/lib/api-client";
 import type { SampleInfo } from "@/lib/samples";
@@ -18,7 +18,7 @@ import type { AppStatus } from "@/lib/status";
 type ParseState =
   | { state: "idle" }
   | { state: "loading"; label: string }
-  | { state: "done"; result: ParseResult; run: number }
+  | { state: "done"; result: ParseResult; run: number; source: ParseSource }
   | { state: "failed"; code: string; message: string };
 
 const PROVIDER_LABEL: Record<AppStatus["provider"] | "mock", string> = {
@@ -29,6 +29,7 @@ const PROVIDER_LABEL: Record<AppStatus["provider"] | "mock", string> = {
 };
 
 const FEATURED_SAMPLES: Record<string, string> = {
+  "09-launch-vehicle-po.pdf": "Launch vehicle PO with Inconel, DFARS and a revision",
   "02-aerospace-po.pdf": "Aerospace PO with spec callouts and DFARS",
   "06-scanned-note.png": "Handwritten shop note, photographed",
   "05-rfq-out-of-catalog.pdf": "RFQ with a stainless line and qty over 200",
@@ -44,11 +45,12 @@ export default function Home() {
     requestJson<{ samples: SampleInfo[] }>("/api/samples").then((r) => setSamples(r.samples)).catch(() => setSamples([]));
   }, []);
 
-  const run = async (source: ParseSource) => {
+  const run = async (source: ParseSource, fresh = false) => {
     setParse({ state: "loading", label: source.kind === "file" ? source.file.name : "pasted text" });
     try {
-      const result = await (source.kind === "file" ? postFile(source.file) : postJson<ParseResult>("/api/parse", { text: source.text }));
-      setParse({ state: "done", result, run: Date.now() });
+      const url = fresh ? "/api/parse?fresh=1" : "/api/parse";
+      const result = await (source.kind === "file" ? postFile(url, source.file) : postJson<ParseResult>(url, { text: source.text }));
+      setParse({ state: "done", result, run: Date.now(), source });
     } catch (error) {
       setParse(
         error instanceof ApiError
@@ -87,17 +89,17 @@ export default function Home() {
           {parse.state === "idle" && <EmptyState featured={featured} onSample={runSample} />}
           {parse.state === "loading" && <Loading label={parse.label} />}
           {parse.state === "failed" && <ErrorCard code={parse.code} message={parse.message} />}
-          {parse.state === "done" && status && <Results key={parse.run} result={parse.result} status={status} />}
+          {parse.state === "done" && status && <Results key={parse.run} result={parse.result} status={status} onRerunLive={() => run(parse.source, true)} />}
         </main>
       </div>
     </div>
   );
 }
 
-function postFile(file: File): Promise<ParseResult> {
+function postFile(url: string, file: File): Promise<ParseResult> {
   const form = new FormData();
   form.append("file", file);
-  return requestJson<ParseResult>("/api/parse", { method: "POST", body: form });
+  return requestJson<ParseResult>(url, { method: "POST", body: form });
 }
 
 function TopBar({ status }: { status: AppStatus | null }) {
@@ -119,7 +121,7 @@ function TopBar({ status }: { status: AppStatus | null }) {
   );
 }
 
-function Results({ result, status }: { result: ParseResult; status: AppStatus }) {
+function Results({ result, status, onRerunLive }: { result: ParseResult; status: AppStatus; onRerunLive: () => void }) {
   const editor = useRfqEditor(result, status.catalog, status.today);
   const count = (severity: string) => editor.flags.filter((f) => f.severity === severity).length;
   const { meta } = result;
@@ -135,6 +137,17 @@ function Results({ result, status }: { result: ParseResult; status: AppStatus })
         <Stat label="Errors" value={String(count("error"))} />
         <Stat label="Warnings" value={String(count("warning"))} />
         <Stat label="Time" value={`${(meta.ms / 1000).toFixed(1)}s`} />
+        {meta.cached_at && (
+          <span className="ml-auto flex items-center gap-3">
+            <span className="text-fg-3">
+              Cached extraction from <span className="font-mono text-fg">{formatCachedAt(meta.cached_at)}</span>
+            </span>
+            <Button variant="secondary" onClick={onRerunLive}>
+              <ArrowClockwise size={14} aria-hidden />
+              Re-run live
+            </Button>
+          </span>
+        )}
         {meta.input_tokens !== undefined && (
           <Stat label="Tokens" value={`${meta.input_tokens.toLocaleString()} in, ${meta.output_tokens?.toLocaleString()} out`} />
         )}
@@ -230,4 +243,8 @@ function ErrorCard({ code, message }: { code: string; message: string }) {
       </div>
     </div>
   );
+}
+
+function formatCachedAt(iso: string): string {
+  return new Date(iso).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 }

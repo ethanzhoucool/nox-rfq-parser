@@ -33,7 +33,7 @@ function events(options: { status?: string; output?: unknown[]; error?: unknown;
 
 beforeEach(async () => {
   directory = await mkdtemp(join(tmpdir(), "rfq-openai-"));
-  vi.stubEnv("CHATGPT_AUTH_DIR", directory);
+  vi.stubEnv("CHATGPT_AUTH_DIR", directory); vi.stubEnv("EXTRACTION_CACHE_DIR", join(directory, "extractions"));
   vi.stubEnv("OPENAI_API_KEY", "fake-api-key"); vi.stubEnv("OPENAI_ACCESS_TOKEN", "");
   vi.stubEnv("OPENAI_MODEL", "gpt-test"); vi.stubEnv("ANTHROPIC_API_KEY", "");
   vi.stubEnv("LLM_PROVIDER", ""); vi.stubEnv("NOX_API_KEY", ""); vi.stubEnv("MOCK_LLM", "");
@@ -42,6 +42,27 @@ beforeEach(async () => {
 afterEach(async () => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); await rm(directory, { recursive: true, force: true }); });
 
 describe("OpenAI RFQ extraction", () => {
+  it("reuses a cached extraction for identical input and bypasses it when fresh", async () => {
+    const input = fromText("6061 plate qty 10", "rfq.txt");
+    const first = await parseRfq(input);
+    const second = await parseRfq(input);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(first.meta.cached_at).toBeUndefined();
+    expect(second.meta).toMatchObject({ model: "gpt-test", cached_at: expect.any(String) });
+    expect(second.meta.input_tokens).toBeUndefined();
+    expect(second.payload).toEqual(first.payload);
+
+    const fresh = await parseRfq(input, { fresh: true });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fresh.meta.cached_at).toBeUndefined();
+  });
+
+  it("does not reuse a cached extraction for different input", async () => {
+    await parseRfq(fromText("6061 plate qty 10", "rfq.txt"));
+    await parseRfq(fromText("6061 plate qty 12", "rfq.txt"));
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it("uses streamed output items when the completed event has an empty output (ChatGPT plan backend)", async () => {
     fetchMock.mockImplementation(async () => events({ itemEvents: true, output: [] }));
     const result = await extractWithOpenAI(fromText("6061 plate qty 10", "rfq.txt"), catalog, TODAY, false);
