@@ -3,7 +3,7 @@
 Buyers send RFQs as sloppy emails, SAP-style PDF POs, BOM spreadsheets and phone photos of handwritten notes. This app turns any of those into a validated request for Nox's public API (`POST /api/v1/rfqs`). Anything missing or ambiguous gets flagged for a person to check. Nothing is filled in silently.
 
 ```
-file / text ─► Claude (structured output) ─► normalize ─► validate vs catalog ─► CreateRfqDto ─► dry run or live submit
+file / text ─► Claude / OpenAI (structured output) ─► normalize ─► validate vs catalog ─► CreateRfqDto ─► dry run or live submit
                  every value has a          fractions, mm,   missing fields, qty      only lines with
                  verbatim source quote      glued tempers,   1..200, stocked alloy/   no errors
                  + confidence               spec callouts    temper, need-by date
@@ -14,15 +14,37 @@ file / text ─► Claude (structured output) ─► normalize ─► validate v
 ```bash
 npm install
 cp .env.example .env.local   # then fill in what you have
-npm run dev                  # http://localhost:3000
+npm run dev                  # http://127.0.0.1:3000
 ```
 
 | Variable | Required | What it does |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | for real parsing | Extraction with `claude-opus-5-5` (adaptive thinking, medium effort, Zod structured output). If it's missing, the UI shows a banner and `/api/parse` returns a clear 500 JSON error. |
+| `ANTHROPIC_API_KEY` | for Claude parsing | Extraction with `claude-opus-5-5` (adaptive thinking, medium effort, Zod structured output). |
+| `OPENAI_API_KEY` | for OpenAI API parsing | Uses the Responses API; usage is billed to your OpenAI Platform account. |
+| `OPENAI_ACCESS_TOKEN` | no | Optional app-issued OAuth access token with `chatgpt.tokens.use.direct`. The UI sign-in flow is preferred because it also stores and rotates refresh tokens. An environment token must be renewed by its owner. |
+| `OPENAI_MODEL` | no | Defaults to `gpt-6.1-sol`. Choose a model available to the API account or connected ChatGPT plan. |
+| `LLM_PROVIDER` | no | `claude`, `openai`, or `chatgpt`. Without an explicit setting, a connected ChatGPT plan takes priority, followed by an OpenAI API key, then Claude. The app displays the provider and model. Errors never silently switch providers or billing accounts. |
+| `CHATGPT_AUTH_DIR` | no | Protected local credentials directory; defaults to gitignored `.chatgpt/`. Run one server process per directory. |
 | `NOX_API_KEY` | no | Turns on the live materials catalog (`GET /api/v1/materials`, cached for 10 min) and enables the **Submit to Nox** button. |
 | `NOX_API_BASE_URL` | no | Defaults to `https://developer-api.noxmetals.co`. |
-| `MOCK_LLM` | no | `1` returns a canned extraction of a fictional aerospace PO instead of calling Claude. Every input gets the same result. Use it to try the UI, validation and payload flow without a key. |
+| `MOCK_LLM` | no | `1` returns a canned extraction of a fictional aerospace PO instead of calling an AI provider. Every input gets the same result. Use it to try the UI, validation and payload flow without a key. |
+
+## Connect your ChatGPT plan locally
+
+1. Run `npm run dev` and open `http://127.0.0.1:3000`.
+2. Click **Continue with ChatGPT**, sign in, and allow RFQ Parser to use your ChatGPT plan. Opening the app on `localhost` also works; sign-in first redirects to `127.0.0.1` so its callback and browser cookie use the same host.
+3. After the browser returns, the app displays **Using your ChatGPT plan**. Upload a document or paste an RFQ. The normal extraction schema, normalization, validation, and Nox submission flow apply.
+4. Use the account selector to add, reconnect, or switch accounts. **Manage usage** opens ChatGPT usage settings. **Disconnect** attempts to revoke the renewable session, clears its local tokens, and retains the account/client mapping for later sign-in. If remote revocation can't be confirmed, the UI says so.
+
+No partner API key or client secret is needed for this local personal-project flow. RFQ Parser registers its own OAuth client and persists a stable host ID. It requests `openid profile email offline_access resource.invoke chatgpt.tokens.use.direct`, uses PKCE/state/nonce, verifies ID-token signatures and claims, and checks plan permission before inference. It keeps each account's client ID and tokens separate; refreshes are serialized and replacement credentials are written atomically with file mode `0600` in a directory with mode `0700`.
+
+Tokens stay on the Node server and are never returned to browser JavaScript or API status responses. **Do not paste a cached Codex login token into source code**; this app needs its own ChatGPT plan authorization. For a manually provisioned app token, use the server-only `OPENAI_ACCESS_TOKEN` variable. It cannot be disconnected through the UI, and RFQ Parser doesn't refresh it.
+
+The dev and production scripts bind to loopback. ChatGPT authentication routes and plan-backed parsing reject remote hosts; account mutations and plan parsing also require the app's same-origin `Origin` header. This is a single-user local app, not a hosted multi-user authentication service. Use a separate credential directory for each installation/process. Moving it into a paid or remotely hosted product requires reviewing the available integration and a different session/storage design.
+
+The official [Sign in with ChatGPT guide](https://developers.openai.com/siwc/token-sharing-open-source/sign-in) documents eligibility and registration. [Plan-backed inference](https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference) uses `POST https://api.openai.com/v1/responses` with a bearer access token, `store: false`, and `stream: true`. Requests consume existing ChatGPT plan usage; they don't provide a separate allowance or access to past ChatGPT conversations. PDFs and images are sent inline, and spreadsheets are converted to text locally.
+
+For API-key access instead, set `OPENAI_API_KEY` in `.env.local` and optionally `LLM_PROVIDER=openai`. For Claude, set `ANTHROPIC_API_KEY` and optionally `LLM_PROVIDER=claude`. `MOCK_LLM=1` continues to bypass all model calls.
 
 ## Dry run vs live
 
@@ -49,8 +71,8 @@ Run `MOCK_LLM=1 npm run dev` if you have no key. With a key, use the samples:
 |---|---|
 | `npm run dev` / `build` / `start` | Next.js |
 | `npm run typecheck` | `tsc --noEmit` |
-| `npm test` | Vitest unit tests: units, spec callouts, normalization, validation, payload, request/curl, email, mock pipeline |
-| `npm run eval` | Runs the parse pipeline over every `samples/*` file that has `samples/expected/<name>.json`. Prints field accuracy and flag recall, and writes `eval-report.json`. Needs `ANTHROPIC_API_KEY`. With `MOCK_LLM=1` it only proves the harness runs. |
+| `npm test` | Vitest: existing pipeline rules plus OAuth validation/refresh/revocation and streamed OpenAI extraction, input formats, and failure handling. Uses mocked provider responses; no credentials required. |
+| `npm run eval` | Runs the parse pipeline over every `samples/*` file that has `samples/expected/<name>.json`. Prints field accuracy and flag recall, and writes `eval-report.json`. Needs credentials for the selected provider. With `MOCK_LLM=1` it only proves the harness runs. |
 
 Eval conventions follow `samples/README.md`. Lines match by ref when every ref agrees, otherwise by order. Flags are scored on `(line_ref, severity)`, and `field` is reported as a secondary soft match. A null expected compliance counts as equal to `"none"`.
 
@@ -62,11 +84,15 @@ app/api/parse             POST multipart file or JSON {text, filename?} → Pars
 app/api/submit            POST {payload, live?} → dry-run request or live 202
 app/api/samples[/name]    list and serve files in samples/
 app/api/status            model, catalog source, Nox mode (for the header pills)
+app/api/chatgpt/*          loopback sign-in, callback, account selection, disconnect
 app/api/rfqs/[id]         proxy for polling a live RFQ
 components/               UI building blocks
 hooks/useRfqEditor.ts     edits + client-side re-validation
 lib/schema.ts             Zod schema for the LLM and the shared types (ExtractedRfq, Flag, CreateRfqDto…)
 lib/extract.ts, prompt.ts Claude call and system prompt
+lib/extract-openai.ts     OpenAI Responses extraction with an API key or app OAuth token
+lib/chatgpt-auth.ts       local OAuth registrations, private storage, refresh/revocation
+lib/llm.ts               provider selection and readiness
 lib/normalize.ts          deterministic clean-up of the LLM output
 lib/validate.ts           rule flags
 lib/analyze.ts            validate + merge flags + build payload (shared by server and client)

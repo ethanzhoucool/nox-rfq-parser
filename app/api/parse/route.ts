@@ -3,12 +3,16 @@ import { HttpError } from "@/lib/errors";
 import { errorResponse } from "@/lib/http";
 import { fromFile, fromText, type RfqInput } from "@/lib/input";
 import { parseRfq } from "@/lib/parse";
+import { assertLocalRequest } from "@/lib/chatgpt-auth";
+import { llmSettings } from "@/lib/llm";
+import { config } from "@/lib/config";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
 export async function POST(request: Request) {
   try {
+    if (!config.mockLlm && (await llmSettings()).provider === "chatgpt") assertLocalRequest(request, true);
     return NextResponse.json(await parseRfq(await readInput(request)));
   } catch (error) {
     return errorResponse(error);

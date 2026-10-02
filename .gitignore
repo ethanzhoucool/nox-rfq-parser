@@ -6,3 +6,4 @@ eval-report.json
 *.tsbuildinfo
 .DS_Store
 __pycache__/
+.chatgpt/

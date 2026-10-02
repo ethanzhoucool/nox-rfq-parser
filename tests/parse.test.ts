@@ -6,6 +6,7 @@ describe("parseRfq with MOCK_LLM", () => {
   beforeEach(() => {
     vi.stubEnv("MOCK_LLM", "1");
     vi.stubEnv("NOX_API_KEY", "");
+    vi.stubEnv("LLM_PROVIDER", "claude");
   });
   afterEach(() => vi.unstubAllEnvs());
 
