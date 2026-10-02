@@ -1,5 +1,6 @@
 "use client";
 
+import { PaperPlaneTilt } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import type { RfqEditor } from "@/hooks/useRfqEditor";
 import { useRfqPolling } from "@/hooks/useRfqPolling";
@@ -58,7 +59,7 @@ export function PayloadPanel({ editor, nox }: { editor: RfqEditor; nox: AppStatu
                 key={t}
                 type="button"
                 onClick={() => setTab(t)}
-                className={cx("rounded px-2 py-0.5 text-[11px] font-medium", tab === t ? "bg-slate-700 text-slate-100" : "text-slate-400 hover:text-slate-200")}
+                className={cx("rounded-md px-2 py-0.5 text-xs font-medium", tab === t ? "bg-sunken text-fg" : "text-fg-3 hover:text-fg")}
               >
                 {t === "json" ? "JSON" : "curl"}
               </button>
@@ -69,15 +70,15 @@ export function PayloadPanel({ editor, nox }: { editor: RfqEditor; nox: AppStatu
       }
       className="flex flex-col"
     >
-      <div className="border-b border-line px-4 py-2 font-mono text-[11px] text-slate-400">
-        <span className="text-accent">POST</span> {nox.baseUrl}/api/v1/rfqs
+      <div className="border-b border-line px-4 py-2 font-mono text-[11px] text-fg-2">
+        <span className="font-semibold text-accent">POST</span> {nox.baseUrl}/api/v1/rfqs
       </div>
       {excluded.length > 0 && (
-        <p className="border-b border-line bg-rose-500/5 px-4 py-2 text-xs text-rose-200">
+        <p className="border-b border-line bg-err/5 px-4 py-2 text-xs text-err">
           Line{excluded.length > 1 ? "s" : ""} {excluded.join(", ")} left out until {excluded.length > 1 ? "their" : "its"} errors are fixed.
         </p>
       )}
-      <pre className="max-h-[26rem] min-h-48 flex-1 overflow-auto px-4 py-3 font-mono text-[11.5px] leading-relaxed text-slate-300">{tab === "json" ? json : curl}</pre>
+      <pre className="max-h-[26rem] min-h-48 flex-1 overflow-auto px-4 py-3 bg-sunken font-mono text-[11.5px] leading-relaxed text-fg-2">{tab === "json" ? json : curl}</pre>
 
       <footer className="space-y-3 border-t border-line px-4 py-3">
         <div className="flex flex-wrap items-center gap-2">
@@ -86,11 +87,12 @@ export function PayloadPanel({ editor, nox }: { editor: RfqEditor; nox: AppStatu
           </Button>
           <Tooltip content={liveEnabled ? "Sends POST /api/v1/rfqs with your Nox key." : "Set NOX_API_KEY on the server to enable live submission."}>
             <Button variant="primary" disabled={!liveEnabled || empty || submission.state === "sending"} onClick={() => submit(true)}>
+              <PaperPlaneTilt size={14} aria-hidden />
               Submit to Nox
             </Button>
           </Tooltip>
-          <span className="ml-auto text-[11px] text-slate-500">
-            {payload.lines.length} line{payload.lines.length === 1 ? "" : "s"} · Idempotency-Key = hash of body
+          <span className="ml-auto text-xs text-fg-3">
+            {payload.lines.length} line{payload.lines.length === 1 ? "" : "s"}, Idempotency-Key from body hash
           </span>
         </div>
         <SubmissionStatus submission={submission} />
@@ -101,13 +103,13 @@ export function PayloadPanel({ editor, nox }: { editor: RfqEditor; nox: AppStatu
 
 function SubmissionStatus({ submission }: { submission: Submission }) {
   if (submission.state === "idle") return null;
-  if (submission.state === "sending") return <p className="text-xs text-slate-400">Sending…</p>;
-  if (submission.state === "failed") return <p className="text-xs text-rose-300">{submission.message}</p>;
+  if (submission.state === "sending") return <p className="text-xs text-fg-2">Sending…</p>;
+  if (submission.state === "failed") return <p className="text-xs text-err">{submission.message}</p>;
 
   const { result } = submission;
   if (result.mode === "dry-run") {
     return (
-      <div className="rounded-md border border-line bg-slate-900/70 px-3 py-2 text-xs text-slate-300">
+      <div className="rounded-md border border-line bg-sunken px-3 py-2 text-xs text-fg-2">
         <span className="font-semibold text-accent">Dry run.</span> Nothing was sent. The exact request is in the curl tab, with key{" "}
         <code className="font-mono">{result.request.headers["Idempotency-Key"]}</code>.
       </div>
@@ -119,11 +121,11 @@ function SubmissionStatus({ submission }: { submission: Submission }) {
 function LiveStatus({ id }: { id: string }) {
   const { status, total, error } = useRfqPolling(id);
   return (
-    <div className="rounded-md border border-accent/40 bg-accent/5 px-3 py-2 text-xs text-slate-200">
-      <span className="font-semibold text-accent">Submitted.</span> RFQ <code className="font-mono">{id}</code> · pricing:{" "}
+    <div className="rounded-md border border-accent/40 bg-accent/5 px-3 py-2 text-xs text-fg">
+      <span className="font-semibold text-accent">Submitted.</span> RFQ <code className="font-mono">{id}</code>, pricing:{" "}
       <span className="font-medium">{status ?? "…"}</span>
-      {total !== null && <> · total ${total.toFixed(2)}</>}
-      {error && <span className="text-rose-300"> · {error}</span>}
+      {total !== null && <>, total ${total.toFixed(2)}</>}
+      {error && <span className="text-err">. {error}</span>}
     </div>
   );
 }

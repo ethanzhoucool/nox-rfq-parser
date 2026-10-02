@@ -214,7 +214,7 @@ function validateDimensions(line: ExtractedLine): Flag[] {
         severity: "warning",
         line_ref: line.ref,
         field: "thickness_in",
-        message: `${thickness}" thick is unusual for stocked plate (${PLATE_THICKNESS_RANGE.min}"–${PLATE_THICKNESS_RANGE.max}"). Confirm.`,
+        message: `${thickness}" thick is unusual for stocked plate (${PLATE_THICKNESS_RANGE.min}" to ${PLATE_THICKNESS_RANGE.max}"). Confirm.`,
         suggested_question: `Line ${line.ref}: can you confirm the plate thickness of ${thickness}"?`,
       }),
     );

@@ -1,25 +1,70 @@
 @import "tailwindcss";
 
-@theme {
-  --color-accent: #38bdf8;
-  --color-accent-strong: #0ea5e9;
-  --color-panel: #0f172a;
-  --color-panel-raised: #131c31;
-  --color-line: #1e293b;
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+/* Semantic tokens, swapped per color scheme. Components only use these names. */
+:root {
+  color-scheme: light;
+  --canvas: #f2f2f3;
+  --surface: #fbfbfb;
+  --sunken: #f4f4f5;
+  --hover: #ececee;
+  --line: #e2e2e5;
+  --line-strong: #cfcfd4;
+  --fg: #18181b;
+  --fg-2: #51515a;
+  --fg-3: #6e6e78;
+  --accent: #2747c9;
+  --accent-hover: #1e39a6;
+  --on-accent: #fbfbfb;
+  --err: #b42318;
+  --warn: #9a5a06;
+  --ok: #157347;
 }
 
-:root {
-  color-scheme: dark;
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --canvas: #0c0c0e;
+    --surface: #141417;
+    --sunken: #0f0f12;
+    --hover: #1e1e23;
+    --line: #26262c;
+    --line-strong: #383840;
+    --fg: #ececef;
+    --fg-2: #a3a3ad;
+    --fg-3: #80808b;
+    --accent: #8ea4ff;
+    --accent-hover: #a9baff;
+    --on-accent: #0c0c0e;
+    --err: #f4877e;
+    --warn: #f0b44c;
+    --ok: #62cf98;
+  }
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-sunken: var(--sunken);
+  --color-hover: var(--hover);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-fg: var(--fg);
+  --color-fg-2: var(--fg-2);
+  --color-fg-3: var(--fg-3);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-on-accent: var(--on-accent);
+  --color-err: var(--err);
+  --color-warn: var(--warn);
+  --color-ok: var(--ok);
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
 }
 
 body {
-  background:
-    radial-gradient(1200px 500px at 85% -10%, rgb(56 189 248 / 0.07), transparent 60%),
-    linear-gradient(rgb(148 163 184 / 0.035) 1px, transparent 1px) 0 0 / 100% 32px,
-    #020617;
-  min-height: 100vh;
+  background: var(--canvas);
+  color: var(--fg);
+  min-height: 100dvh;
 }
 
 input[type="number"]::-webkit-inner-spin-button,
