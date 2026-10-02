@@ -6,7 +6,7 @@ import type { RfqInput } from "./input";
 import { buildSystemPrompt } from "./prompt";
 import { ExtractionSchema, type Catalog, type Extraction } from "./schema";
 
-export type ExtractionRun = { extraction: Extraction; usage?: { input_tokens: number; output_tokens: number } };
+export type ExtractionRun = { extraction: Extraction; model?: string; usage?: { input_tokens: number; output_tokens: number } };
 
 export async function extractWithClaude(input: RfqInput, catalog: Catalog, today: string): Promise<ExtractionRun> {
   const apiKey = config.anthropicKey;
