@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Field, Severity } from "@/lib/schema";
-import { ConfidenceDot, SEVERITY_STYLE, SourceQuote, Tooltip, cx } from "./ui";
+import { ConfidenceMark, SEVERITY_STYLE, SourceQuote, Tooltip, cx } from "./ui";
 
 type Common<T> = {
   field: Field<T>;
@@ -20,7 +20,7 @@ export function EditableText<T>({
   className,
   format,
   parse,
-  placeholder = "—",
+  placeholder = "None",
   align = "left",
   onCommit,
 }: Common<T> & {
@@ -62,9 +62,9 @@ export function EditableText<T>({
         onBlur={commit}
         onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
         className={cx(
-          "w-full min-w-0 bg-transparent outline-none placeholder:text-slate-600",
+          "w-full min-w-0 bg-transparent outline-none placeholder:text-fg-3/70",
           align === "right" && "text-right",
-          invalid && "text-rose-300",
+          invalid && "text-err",
         )}
       />
     </Cell>
@@ -88,7 +88,7 @@ export function EditableSelect<T extends string>({
         onChange={(e) => onCommit(e.target.value === "" ? null : (e.target.value as T))}
         className="w-full min-w-0 cursor-pointer appearance-none bg-transparent outline-none"
       >
-        <option value="">—</option>
+        <option value="">None</option>
         {options.map((option) => (
           <option key={option} value={option}>
             {option}
@@ -104,11 +104,11 @@ function Cell<T>({ field, edited, severity, className, children }: Omit<Common<T
     <Tooltip content={<SourceQuote source={field.source} confidence={field.confidence} edited={edited} />} className={cx("block", className)}>
       <span
         className={cx(
-          "flex items-center gap-1.5 rounded px-1.5 py-1 transition focus-within:bg-slate-800 focus-within:ring-1 focus-within:ring-accent/70 hover:bg-slate-800/60",
+          "flex items-center gap-1.5 rounded-md px-1.5 py-1 transition-colors focus-within:bg-sunken focus-within:ring-1 focus-within:ring-accent hover:bg-hover",
           severity && severity !== "info" && SEVERITY_STYLE[severity].ring,
         )}
       >
-        <ConfidenceDot confidence={field.confidence} edited={edited} />
+        <ConfidenceMark confidence={field.confidence} edited={edited} />
         {children}
       </span>
     </Tooltip>

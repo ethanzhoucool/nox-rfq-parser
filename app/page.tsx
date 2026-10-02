@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowRight, WarningOctagon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import { ChatgptConnection } from "@/components/ChatgptConnection";
 import { FlagsPanel } from "@/components/FlagsPanel";
@@ -7,7 +8,7 @@ import { HeaderCard } from "@/components/HeaderCard";
 import { InputPanel, type ParseSource } from "@/components/InputPanel";
 import { LineTable } from "@/components/LineTable";
 import { PayloadPanel } from "@/components/PayloadPanel";
-import { Pill, cx } from "@/components/ui";
+import { StatusChip, cx } from "@/components/ui";
 import { useRfqEditor } from "@/hooks/useRfqEditor";
 import { ApiError, postJson, requestJson } from "@/lib/api-client";
 import type { SampleInfo } from "@/lib/samples";
@@ -19,6 +20,19 @@ type ParseState =
   | { state: "loading"; label: string }
   | { state: "done"; result: ParseResult; run: number }
   | { state: "failed"; code: string; message: string };
+
+const PROVIDER_LABEL: Record<AppStatus["provider"] | "mock", string> = {
+  mock: "Demo",
+  chatgpt: "ChatGPT plan",
+  openai: "OpenAI API",
+  claude: "Claude",
+};
+
+const FEATURED_SAMPLES: Record<string, string> = {
+  "02-aerospace-po.pdf": "Aerospace PO with spec callouts and DFARS",
+  "06-scanned-note.png": "Handwritten shop note, photographed",
+  "05-rfq-out-of-catalog.pdf": "RFQ with a stainless line and qty over 200",
+};
 
 export default function Home() {
   const [status, setStatus] = useState<AppStatus | null>(null);
@@ -44,21 +58,33 @@ export default function Home() {
     }
   };
 
+  const runSample = async (name: string) => {
+    const response = await fetch(`/api/samples/${encodeURIComponent(name)}`).catch(() => null);
+    if (!response?.ok) {
+      setParse({ state: "failed", code: "sample_unavailable", message: `Couldn't load ${name}.` });
+      return;
+    }
+    run({ kind: "file", file: new File([await response.blob()], name, { type: response.headers.get("content-type") ?? "" }) });
+  };
+
+  const featured = Object.keys(FEATURED_SAMPLES).flatMap((name) => samples.filter((s) => s.name === name));
+
   return (
-    <div className="mx-auto max-w-[1600px] px-5 pb-16">
+    <div className="mx-auto max-w-[1600px] px-4 pb-16 md:px-6">
       <TopBar status={status} />
       <ChatgptConnection status={status} refresh={async () => setStatus(await requestJson<AppStatus>("/api/status"))} />
       {status?.llm === "missing_key" && (
-        <div className="mb-5 rounded-lg border border-amber-400/30 bg-amber-400/5 px-4 py-2.5 text-[13px] text-amber-100">
-          <strong className="font-semibold">The selected AI provider isn't connected.</strong> Connect ChatGPT above, or configure an OpenAI or Claude API key to enable parsing.
+        <div className="mb-5 rounded-md border border-warn/40 bg-warn/5 px-4 py-2.5 text-[13px] text-fg">
+          <strong className="font-semibold text-warn">The selected AI provider isn&apos;t connected.</strong> Connect ChatGPT above, or set an OpenAI or
+          Claude API key to enable parsing.
         </div>
       )}
       <div className="grid gap-5 lg:grid-cols-[340px_minmax(0,1fr)]">
         <aside className="lg:sticky lg:top-5 lg:self-start">
-          <InputPanel samples={samples} busy={parse.state === "loading"} onParse={run} />
+          <InputPanel samples={samples} busy={parse.state === "loading"} onParse={run} onSample={runSample} />
         </aside>
         <main className="min-w-0">
-          {parse.state === "idle" && <EmptyState />}
+          {parse.state === "idle" && <EmptyState featured={featured} onSample={runSample} />}
           {parse.state === "loading" && <Loading label={parse.label} />}
           {parse.state === "failed" && <ErrorCard code={parse.code} message={parse.message} />}
           {parse.state === "done" && status && <Results key={parse.run} result={parse.result} status={status} />}
@@ -77,19 +103,16 @@ function postFile(file: File): Promise<ParseResult> {
 function TopBar({ status }: { status: AppStatus | null }) {
   return (
     <header className="flex flex-wrap items-center justify-between gap-4 py-5">
-      <div className="flex items-center gap-3">
-        <div className="grid size-9 place-items-center rounded-md border border-accent/40 bg-accent/10 font-mono text-sm font-bold text-accent">Rx</div>
-        <div>
-          <h1 className="text-[15px] font-semibold tracking-tight text-slate-100">RFQ Parser</h1>
-          <p className="text-xs text-slate-500">Messy buyer RFQs in, validated Nox Metals API requests out</p>
-        </div>
+      <div>
+        <h1 className="text-base font-semibold tracking-tight text-fg">RFQ Parser</h1>
+        <p className="text-[13px] text-fg-2">Buyer RFQs and POs in, validated Nox Metals API requests out.</p>
       </div>
       {status && (
         <div className="flex flex-wrap gap-2">
-          <Pill label="AI" value={status.llm === "mock" ? "demo" : status.provider === "chatgpt" ? "ChatGPT plan" : status.provider === "openai" ? "OpenAI API" : "Claude"} />
-          <Pill label="Model" value={status.model} tone={status.llm === "missing_key" ? "warn" : "neutral"} />
-          <Pill label="Catalog" value={status.catalog.source === "live" ? "live /materials" : "seed (approx.)"} tone={status.catalog.source === "live" ? "accent" : "neutral"} />
-          <Pill label="Nox" value={status.nox.mode === "live" ? "live submit" : "dry run"} tone={status.nox.mode === "live" ? "accent" : "neutral"} />
+          <StatusChip label="AI" value={PROVIDER_LABEL[status.llm === "mock" ? "mock" : status.provider]} />
+          <StatusChip label="Model" value={status.model} tone={status.llm === "missing_key" ? "warn" : "neutral"} />
+          <StatusChip label="Catalog" value={status.catalog.source === "live" ? "Live /materials" : "Seed (approx.)"} tone={status.catalog.source === "live" ? "accent" : "neutral"} />
+          <StatusChip label="Nox" value={status.nox.mode === "live" ? "Live submit" : "Dry run"} tone={status.nox.mode === "live" ? "accent" : "neutral"} />
         </div>
       )}
     </header>
@@ -103,17 +126,18 @@ function Results({ result, status }: { result: ParseResult; status: AppStatus })
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 rounded-lg border border-line bg-panel/60 px-4 py-2.5 text-xs">
-        <span className={cx("rounded px-2 py-0.5 font-semibold", editor.blocking ? "bg-rose-500/15 text-rose-300" : "bg-emerald-500/15 text-emerald-300")}>
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-md border border-line bg-surface px-4 py-2.5 text-xs">
+        <span className={cx("rounded-md px-2 py-0.5 font-semibold", editor.blocking ? "bg-err/10 text-err" : "bg-ok/10 text-ok")}>
           {editor.blocking ? "Needs attention" : "Ready to submit"}
         </span>
-        <Stat label="File" value={meta.filename ?? "—"} />
-        <Stat label="Lines" value={`${editor.payload.lines.length}/${editor.draft.lines.length} in payload`} />
+        <Stat label="File" value={meta.filename ?? "Pasted text"} />
+        <Stat label="In payload" value={`${editor.payload.lines.length} of ${editor.draft.lines.length} lines`} />
         <Stat label="Errors" value={String(count("error"))} />
         <Stat label="Warnings" value={String(count("warning"))} />
-        <span className="ml-auto text-slate-500">
-          {(meta.ms / 1000).toFixed(1)}s{meta.input_tokens !== undefined && ` · ${meta.input_tokens.toLocaleString()} in / ${meta.output_tokens?.toLocaleString()} out tokens`}
-        </span>
+        <Stat label="Time" value={`${(meta.ms / 1000).toFixed(1)}s`} />
+        {meta.input_tokens !== undefined && (
+          <Stat label="Tokens" value={`${meta.input_tokens.toLocaleString()} in, ${meta.output_tokens?.toLocaleString()} out`} />
+        )}
       </div>
       <HeaderCard editor={editor} />
       <LineTable editor={editor} />
@@ -127,53 +151,83 @@ function Results({ result, status }: { result: ParseResult; status: AppStatus })
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <span className="text-slate-500">
-      {label} <span className="font-medium text-slate-200">{value}</span>
+    <span className="text-fg-3">
+      {label} <span className="font-mono font-medium text-fg">{value}</span>
     </span>
   );
 }
 
-function EmptyState() {
-  const steps = [
-    ["Drop", "a PDF PO, photo, spreadsheet or email. Or pick a sample."],
-    ["Review", "every extracted value with its source quote and confidence."],
-    ["Resolve", "flags: fix cells, accept warnings, email the customer the open questions."],
-    ["Send", "the exact POST /api/v1/rfqs request. Dry run unless a Nox key is set."],
-  ];
+function EmptyState({ featured, onSample }: { featured: SampleInfo[]; onSample: (name: string) => void }) {
   return (
-    <div className="grid h-full min-h-[420px] place-items-center rounded-lg border border-dashed border-line bg-panel/30 p-10">
-      <ol className="grid max-w-2xl gap-4 sm:grid-cols-2">
-        {steps.map(([title, body], i) => (
-          <li key={title} className="rounded-lg border border-line bg-panel/70 p-4">
-            <div className="mb-1 font-mono text-[11px] text-accent">0{i + 1}</div>
-            <div className="text-sm font-semibold text-slate-100">{title}</div>
-            <p className="mt-1 text-xs leading-relaxed text-slate-400">{body}</p>
-          </li>
-        ))}
-      </ol>
+    <div className="flex min-h-[460px] flex-col justify-center rounded-md border border-dashed border-line-strong px-6 py-12 md:px-12">
+      <h2 className="text-xl font-semibold tracking-tight text-fg">Drop a buyer&apos;s RFQ or PO to start</h2>
+      <p className="mt-2 max-w-[60ch] text-sm leading-relaxed text-fg-2">
+        Every value is shown with the text it came from. Anything missing or ambiguous becomes a flag with a question for the customer. The output
+        is the exact request for <code className="font-mono text-[13px]">POST /api/v1/rfqs</code>.
+      </p>
+      {featured.length > 0 && (
+        <div className="mt-8 max-w-xl">
+          <p className="mb-2 text-xs font-medium text-fg-3">Or run a sample</p>
+          <ul className="divide-y divide-line overflow-hidden rounded-md border border-line bg-surface">
+            {featured.map((sample) => (
+              <li key={sample.name}>
+                <button
+                  type="button"
+                  onClick={() => onSample(sample.name)}
+                  className="group flex w-full items-center justify-between gap-4 px-4 py-3 text-left transition-colors hover:bg-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-sm font-medium text-fg">{FEATURED_SAMPLES[sample.name]}</span>
+                    <span className="block truncate font-mono text-xs text-fg-3">{sample.name}</span>
+                  </span>
+                  <ArrowRight size={16} className="shrink-0 text-fg-3 transition-transform group-hover:translate-x-0.5 group-hover:text-accent" aria-hidden />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
 
 function Loading({ label }: { label: string }) {
   return (
-    <div className="grid min-h-[420px] place-items-center rounded-lg border border-line bg-panel/40">
-      <div className="text-center">
-        <div className="mx-auto mb-4 h-1 w-48 overflow-hidden rounded-full bg-slate-800">
-          <div className="h-full w-1/3 animate-pulse rounded-full bg-accent" />
+    <div className="space-y-5" aria-busy="true">
+      <p className="text-sm text-fg-2">
+        Reading <span className="font-mono text-fg">{label}</span>. Extracting lines, normalizing units and checking the catalog.
+      </p>
+      <div className="rounded-md border border-line bg-surface p-4">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {Array.from({ length: 8 }, (_, i) => (
+            <div key={i} className="space-y-2">
+              <Bone className="h-2.5 w-16" />
+              <Bone className="h-4 w-full max-w-40" />
+            </div>
+          ))}
         </div>
-        <p className="text-sm text-slate-200">Reading {label}…</p>
-        <p className="mt-1 text-xs text-slate-500">Extracting lines, normalizing units, checking the catalog</p>
+      </div>
+      <div className="space-y-3 rounded-md border border-line bg-surface p-4">
+        {Array.from({ length: 5 }, (_, i) => (
+          <Bone key={i} className="h-6 w-full" />
+        ))}
       </div>
     </div>
   );
 }
 
+function Bone({ className }: { className: string }) {
+  return <div className={cx("rounded-md bg-sunken motion-safe:animate-pulse", className)} />;
+}
+
 function ErrorCard({ code, message }: { code: string; message: string }) {
   return (
-    <div className="rounded-lg border border-rose-500/40 bg-rose-500/5 p-5">
-      <div className="mb-1 font-mono text-[11px] text-rose-300">{code}</div>
-      <p className="text-sm text-rose-100">{message}</p>
+    <div role="alert" className="flex gap-3 rounded-md border border-err/40 bg-err/5 p-5">
+      <WarningOctagon size={20} weight="bold" className="mt-0.5 shrink-0 text-err" aria-hidden />
+      <div>
+        <p className="text-sm font-medium text-fg">{message}</p>
+        <p className="mt-1 font-mono text-xs text-fg-3">{code}</p>
+      </div>
     </div>
   );
 }
