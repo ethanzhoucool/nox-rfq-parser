@@ -14,13 +14,17 @@ let directory: string;
 let fetchMock: ReturnType<typeof vi.fn>;
 const extraction = () => ({ rfq: rfq(), flags: [] });
 
-function events(options: { status?: string; output?: unknown[]; error?: unknown; text?: string; terminal?: boolean } = {}) {
+function events(options: { status?: string; output?: unknown[]; error?: unknown; text?: string; terminal?: boolean; itemEvents?: boolean } = {}) {
   const message = { id: "msg_test", type: "message", role: "assistant", status: "completed",
     content: [{ type: "output_text", text: options.text ?? JSON.stringify(extraction()), annotations: [] }] };
   const created = { id: "resp_test", object: "response", created_at: 0, model: "gpt-test", status: "in_progress", output: [], error: null };
   const response = { ...created, status: options.status || "completed", error: options.error || null,
     output: options.output ?? [message], usage: { input_tokens: 12, output_tokens: 34, total_tokens: 46, input_tokens_details: {}, output_tokens_details: {} } };
   const list = [{ type: "response.created", sequence_number: 0, response: created },
+    ...(options.itemEvents
+      ? [{ type: "response.output_item.added", sequence_number: 1, output_index: 0, item: { ...message, status: "in_progress", content: [] } },
+        { type: "response.output_item.done", sequence_number: 2, output_index: 0, item: message }]
+      : []),
     ...(options.terminal === false ? [] : [{ type: `response.${response.status}`, sequence_number: 1, response }])];
   return new Response(list.map((event) => `event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`).join(""), {
     headers: { "content-type": "text/event-stream" },
@@ -38,6 +42,12 @@ beforeEach(async () => {
 afterEach(async () => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); await rm(directory, { recursive: true, force: true }); });
 
 describe("OpenAI RFQ extraction", () => {
+  it("uses streamed output items when the completed event has an empty output (ChatGPT plan backend)", async () => {
+    fetchMock.mockImplementation(async () => events({ itemEvents: true, output: [] }));
+    const result = await extractWithOpenAI(fromText("6061 plate qty 10", "rfq.txt"), catalog, TODAY, false);
+    expect(result.extraction.rfq.lines).toHaveLength(rfq().lines.length);
+  });
+
   it("uses the Responses API and the existing schema and normalization pipeline", async () => {
     const result = await parseRfq(fromText("6061 plate qty 10", "rfq.txt"));
     expect(result.meta).toMatchObject({ model: "gpt-test", input_tokens: 12, output_tokens: 34, filename: "rfq.txt" });
