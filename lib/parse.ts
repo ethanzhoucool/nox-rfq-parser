@@ -4,24 +4,29 @@ import { MODEL, config } from "./config";
 import { todayIso } from "./dates";
 import { extractWithClaude, type ExtractionRun } from "./extract";
 import { extractWithOpenAI } from "./extract-openai";
+import { cacheKey, readCachedExtraction, writeCachedExtraction, type CachedExtraction } from "./extraction-cache";
 import { fromLlm } from "./flags";
 import type { RfqInput } from "./input";
 import { llmSettings } from "./llm";
 import { MOCK_MODEL, mockExtraction } from "./mock";
 import { normalize } from "./normalize";
-import type { ParseResult } from "./schema";
+import type { Catalog, ParseResult } from "./schema";
 
-export async function parseRfq(input: RfqInput): Promise<ParseResult> {
+export async function parseRfq(input: RfqInput, { fresh = false }: { fresh?: boolean } = {}): Promise<ParseResult> {
   const started = Date.now();
   const today = todayIso();
   const catalog = await getCatalog();
 
   let run: ExtractionRun;
+  let cached: CachedExtraction | null = null;
   if (config.mockLlm) run = { extraction: mockExtraction(today) };
   else {
-    const { provider } = await llmSettings();
-    run = provider === "claude" ? await extractWithClaude(input, catalog, today)
-      : await extractWithOpenAI(input, catalog, today, provider === "chatgpt");
+    const key = cacheKey(input);
+    cached = fresh ? null : await readCachedExtraction(key);
+    run = cached ?? (await extractLive(input, catalog, today));
+    if (!cached) {
+      await writeCachedExtraction(key, { ...run, model: run.model || MODEL, extraction_ms: Date.now() - started, cached_at: new Date().toISOString() });
+    }
   }
 
   const { rfq, flags: normalizationFlags } = normalize(run.extraction.rfq, catalog);
@@ -34,8 +39,14 @@ export async function parseRfq(input: RfqInput): Promise<ParseResult> {
     meta: {
       model: config.mockLlm ? MOCK_MODEL : run.model || MODEL,
       ms: Date.now() - started,
-      ...run.usage,
+      ...(!cached && run.usage),
       filename: input.filename,
+      ...(cached && { cached_at: cached.cached_at }),
     },
   };
+}
+
+async function extractLive(input: RfqInput, catalog: Catalog, today: string): Promise<ExtractionRun> {
+  const { provider } = await llmSettings();
+  return provider === "claude" ? extractWithClaude(input, catalog, today) : extractWithOpenAI(input, catalog, today, provider === "chatgpt");
 }

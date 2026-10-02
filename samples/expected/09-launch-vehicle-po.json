@@ -1,0 +1,157 @@
+{
+  "expected": {
+    "document_type": "po",
+    "po_number": "CLS-PO-26-03318",
+    "job_number": "26-2210-MFG",
+    "customer": {
+      "name": "Priya Raman",
+      "company": "Corvane Launch Systems, Inc.",
+      "email": "praman@corvanelaunch.com",
+      "phone": "(720) 555-0164"
+    },
+    "ship_to_address": "Corvane Launch Systems, Inc., Building 4 Receiving, Door 12, 11920 E. Corvane Way, Englewood, CO 80112",
+    "bill_to_address": "Corvane Launch Systems, Inc., Accounts Payable, 11850 E. Corvane Way, Englewood, CO 80112",
+    "required_date": "2026-10-16",
+    "mill_certs_required": true,
+    "lines": [
+      {
+        "ref": "10",
+        "customer_part_number": "MS-2219-T87-1000",
+        "alloy": "2219",
+        "temper": "T87",
+        "product_type": "Plate",
+        "shape": "Plate",
+        "thickness_in": 1.0,
+        "width_in": 48,
+        "length_in": 96,
+        "height_in": null,
+        "diameter_in": null,
+        "quantity": 3,
+        "cut_tolerance": null,
+        "compliance": "none",
+        "certifications": [
+          {
+            "family": "ASTM",
+            "designation": "ASTM B209"
+          }
+        ]
+      },
+      {
+        "ref": "20",
+        "customer_part_number": "MS-7075-T7351-1500",
+        "alloy": "7075",
+        "temper": "T7351",
+        "product_type": "Plate",
+        "shape": "Plate",
+        "thickness_in": 1.5,
+        "width_in": 12,
+        "length_in": 24,
+        "height_in": null,
+        "diameter_in": null,
+        "quantity": 12,
+        "cut_tolerance": "+.060/-0",
+        "compliance": "none",
+        "certifications": [
+          {
+            "family": "AMS",
+            "designation": "AMS 4078"
+          }
+        ]
+      },
+      {
+        "ref": "30",
+        "customer_part_number": "MS-6061-T6511-RB3000",
+        "alloy": "6061",
+        "temper": "T6511",
+        "product_type": "Bar",
+        "shape": "Round",
+        "thickness_in": null,
+        "width_in": null,
+        "length_in": 12,
+        "height_in": null,
+        "diameter_in": 3.0,
+        "quantity": 20,
+        "cut_tolerance": null,
+        "compliance": "none",
+        "certifications": [
+          {
+            "family": "ASTM",
+            "designation": "ASTM B221"
+          }
+        ]
+      },
+      {
+        "ref": "40",
+        "customer_part_number": "MS-718-RB1250",
+        "alloy": "718",
+        "temper": null,
+        "product_type": "Bar",
+        "shape": "Round",
+        "thickness_in": null,
+        "width_in": null,
+        "length_in": 36,
+        "height_in": null,
+        "diameter_in": 1.25,
+        "quantity": 6,
+        "cut_tolerance": null,
+        "compliance": "dfars",
+        "certifications": [
+          {
+            "family": "AMS",
+            "designation": "AMS 5662"
+          }
+        ]
+      },
+      {
+        "ref": "50",
+        "customer_part_number": "MS-7050-PL3000",
+        "alloy": "7050",
+        "temper": null,
+        "product_type": "Plate",
+        "shape": "Plate",
+        "thickness_in": 3.0,
+        "width_in": 18,
+        "length_in": 30,
+        "height_in": null,
+        "diameter_in": null,
+        "quantity": 2,
+        "cut_tolerance": null,
+        "compliance": "none",
+        "certifications": []
+      }
+    ]
+  },
+  "expected_flags": [
+    {
+      "line_ref": "10",
+      "field": "alloy",
+      "severity": "error",
+      "why": "2219-T87 (cryotank alloy) is not in Nox's plate catalog. Route to sales; don't quote."
+    },
+    {
+      "line_ref": "40",
+      "field": "alloy",
+      "severity": "error",
+      "why": "Inconel 718 bar is outside the aluminum catalog (Nox quotes nickel alloys by request only). Route to sales."
+    },
+    {
+      "line_ref": "40",
+      "field": "compliance",
+      "severity": "error",
+      "why": "DFARS 252.225-7009 on a line that isn't stocked. Nickel alloys are true DFARS specialty metals, so country of melt must be certified."
+    },
+    {
+      "line_ref": "50",
+      "field": "temper",
+      "severity": "warning",
+      "why": "Temper is 'per DWG 400-1182', which isn't in the document. 7050 plate is stocked only as T7451; suggest it and confirm."
+    },
+    {
+      "line_ref": "20",
+      "field": "quantity",
+      "severity": "info",
+      "why": "Revision A changed line 20 qty from 10 to 12. Use 12."
+    }
+  ],
+  "notes": "Fictional launch-vehicle company. Revision A changed line 20 qty (10 to 12) and the PO says so twice; the extractor must use 12. DFARS applies to line 40 only (note 4), not order-wide: this is the opposite of sample 02 and tests that compliance isn't spread to every line. 2219 and 718 are realistic launch materials Nox doesn't stock. Line 50's temper is only on a drawing that isn't attached. 'EAR99 (material)' and the export-control clause are about drawings, not a compliance value. The program/charge number 26-2210-MFG is the closest thing to a job number. Page 2 is T&C boilerplate."
+}

@@ -7,3 +7,4 @@ eval-report.json
 .DS_Store
 __pycache__/
 .chatgpt/
+.cache/

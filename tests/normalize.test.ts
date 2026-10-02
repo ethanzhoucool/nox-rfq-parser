@@ -78,6 +78,14 @@ describe("normalize", () => {
     expect(normalizeLine({ description_raw: "6061 plate" }).line.compliance.value).toBeNull();
   });
 
+  it("keeps a document-level DFARS note scoped to the lines it names", () => {
+    const note = "Line 40 supports a government contract. DFARS 252.225-7009 applies to line 40 only.";
+    expect(normalizeLine({ ref: "40" }, note).line.compliance.value).toBe("dfars");
+    expect(normalizeLine({ ref: "10" }, note).line.compliance.value).toBeNull();
+    expect(normalizeLine({ ref: "L2" }, "DFARS applies to lines 1 and 2.").line.compliance.value).toBe("dfars");
+    expect(normalizeLine({ ref: "L3" }, "DFARS applies to lines 1 and 2.").line.compliance.value).toBeNull();
+  });
+
   it("detects mill cert requests in notes", () => {
     expect(normalizeLine({}, "certs pls").rfq.mill_certs_required.value).toBe(true);
     expect(normalizeLine({}, "MTR required").rfq.mill_certs_required.value).toBe(true);

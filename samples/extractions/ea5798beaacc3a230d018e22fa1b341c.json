@@ -1,0 +1,595 @@
+{
+  "extraction": {
+    "rfq": {
+      "document_type": "po",
+      "po_number": {
+        "value": "CLS-PO-26-03318",
+        "confidence": "high",
+        "source": "PO Number CLS-PO-26-03318"
+      },
+      "job_number": {
+        "value": "26-2210-MFG",
+        "confidence": "medium",
+        "source": "CL-2 STAGE 2 / 26-2210-MFG"
+      },
+      "customer": {
+        "name": {
+          "value": "Priya Raman",
+          "confidence": "high",
+          "source": "Buyer Priya Raman"
+        },
+        "company": {
+          "value": "Corvane Launch Systems, Inc.",
+          "confidence": "high",
+          "source": "Corvane Launch Systems, Inc."
+        },
+        "email": {
+          "value": "praman@corvanelaunch.com",
+          "confidence": "high",
+          "source": "praman@corvanelaunch.com"
+        },
+        "phone": {
+          "value": "(720) 555-0164",
+          "confidence": "high",
+          "source": "(720) 555-0164"
+        }
+      },
+      "ship_to_address": {
+        "value": "Corvane Launch Systems, Inc.\nBuilding 4 Receiving, Door 12\n11920 E. Corvane Way\nEnglewood, CO 80112",
+        "confidence": "high",
+        "source": "Corvane Launch Systems, Inc.\nBuilding 4 Receiving, Door 12\n11920 E. Corvane Way\nEnglewood, CO 80112"
+      },
+      "bill_to_address": {
+        "value": "Corvane Launch Systems, Inc.\nAccounts Payable\n11850 E. Corvane Way\nEnglewood, CO 80112",
+        "confidence": "high",
+        "source": "Corvane Launch Systems, Inc.\nAccounts Payable\n11850 E. Corvane Way\nEnglewood, CO 80112"
+      },
+      "required_date": {
+        "value": "2026-10-16",
+        "confidence": "high",
+        "source": "10/16/2026"
+      },
+      "mill_certs_required": {
+        "value": true,
+        "confidence": "high",
+        "source": "CERTIFIED MILL TEST REPORTS AND C OF C REQUIRED WITH SHIPMENT."
+      },
+      "lines": [
+        {
+          "ref": "10",
+          "customer_part_number": {
+            "value": "MS-2219-T87-1000",
+            "confidence": "high",
+            "source": "MS-2219-T87-1000"
+          },
+          "description_raw": "PLATE, ALUMINUM 2219-T87\n1.000 X 48.00 X 96.00 IN\nSPEC: ASTM B209\nULTRASONIC INSPECTED, CLASS A",
+          "alloy": {
+            "value": "2219",
+            "confidence": "high",
+            "source": "PLATE, ALUMINUM 2219-T87"
+          },
+          "temper": {
+            "value": "T87",
+            "confidence": "high",
+            "source": "PLATE, ALUMINUM 2219-T87"
+          },
+          "product_type": {
+            "value": "Plate",
+            "confidence": "high",
+            "source": "PLATE, ALUMINUM 2219-T87"
+          },
+          "shape": {
+            "value": "Plate",
+            "confidence": "high",
+            "source": "PLATE, ALUMINUM 2219-T87"
+          },
+          "thickness_in": {
+            "value": 1,
+            "confidence": "medium",
+            "source": "1.000 X 48.00 X 96.00 IN"
+          },
+          "width_in": {
+            "value": 48,
+            "confidence": "medium",
+            "source": "1.000 X 48.00 X 96.00 IN"
+          },
+          "length_in": {
+            "value": 96,
+            "confidence": "medium",
+            "source": "1.000 X 48.00 X 96.00 IN"
+          },
+          "height_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "diameter_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "outer_diameter_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "outer_dimension_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "wall_thickness_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "quantity": {
+            "value": 3,
+            "confidence": "high",
+            "source": "3 EA 10/16/2026 QUOTE QUOTE"
+          },
+          "cut_tolerance": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "compliance": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "certifications": [
+            {
+              "family": "ASTM",
+              "designation": "ASTM B209",
+              "source": "SPEC: ASTM B209"
+            }
+          ],
+          "notes": "Ultrasonic inspected, Class A. Need by 10/16/2026. Plate film-protected both faces; no mixed heats within the line. Dimensional AS9102 first article required on first shipment of this part number."
+        },
+        {
+          "ref": "20",
+          "customer_part_number": {
+            "value": "MS-7075-T7351-1500",
+            "confidence": "high",
+            "source": "MS-7075-T7351-1500"
+          },
+          "description_raw": "PLATE, AL 7075-T7351\n1.500 X 12.00 X 24.00 IN\nSPEC: AMS 4078\nSAW CUT TOL +.060/-0\nREV A: QTY WAS 10",
+          "alloy": {
+            "value": "7075",
+            "confidence": "high",
+            "source": "PLATE, AL 7075-T7351"
+          },
+          "temper": {
+            "value": "T7351",
+            "confidence": "high",
+            "source": "PLATE, AL 7075-T7351"
+          },
+          "product_type": {
+            "value": "Plate",
+            "confidence": "high",
+            "source": "PLATE, AL 7075-T7351"
+          },
+          "shape": {
+            "value": "Plate",
+            "confidence": "high",
+            "source": "PLATE, AL 7075-T7351"
+          },
+          "thickness_in": {
+            "value": 1.5,
+            "confidence": "medium",
+            "source": "1.500 X 12.00 X 24.00 IN"
+          },
+          "width_in": {
+            "value": 12,
+            "confidence": "medium",
+            "source": "1.500 X 12.00 X 24.00 IN"
+          },
+          "length_in": {
+            "value": 24,
+            "confidence": "medium",
+            "source": "1.500 X 12.00 X 24.00 IN"
+          },
+          "height_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "diameter_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "outer_diameter_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "outer_dimension_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "wall_thickness_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "quantity": {
+            "value": 12,
+            "confidence": "high",
+            "source": "LINE 20 QTY CHANGED FROM 10 TO 12."
+          },
+          "cut_tolerance": {
+            "value": "+.060/-0",
+            "confidence": "high",
+            "source": "SAW CUT TOL +.060/-0"
+          },
+          "compliance": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "certifications": [
+            {
+              "family": "AMS",
+              "designation": "AMS 4078",
+              "source": "SPEC: AMS 4078"
+            }
+          ],
+          "notes": "Revision A dated 10/01/2026 changes quantity from 10 to 12; latest quantity used. Need by 10/16/2026. Plate film-protected both faces; no mixed heats within the line. Dimensional AS9102 first article required on first shipment of this part number."
+        },
+        {
+          "ref": "30",
+          "customer_part_number": {
+            "value": "MS-6061-T6511-RB3000",
+            "confidence": "high",
+            "source": "MS-6061-T6511-RB3000"
+          },
+          "description_raw": "BAR, RD, AL 6061-T6511\n3.000 DIA X 12.00 LG\nSPEC: ASTM B221",
+          "alloy": {
+            "value": "6061",
+            "confidence": "high",
+            "source": "BAR, RD, AL 6061-T6511"
+          },
+          "temper": {
+            "value": "T6511",
+            "confidence": "high",
+            "source": "BAR, RD, AL 6061-T6511"
+          },
+          "product_type": {
+            "value": "Bar",
+            "confidence": "high",
+            "source": "BAR, RD, AL 6061-T6511"
+          },
+          "shape": {
+            "value": "Round",
+            "confidence": "high",
+            "source": "BAR, RD, AL 6061-T6511"
+          },
+          "thickness_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "width_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "length_in": {
+            "value": 12,
+            "confidence": "medium",
+            "source": "3.000 DIA X 12.00 LG"
+          },
+          "height_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "diameter_in": {
+            "value": 3,
+            "confidence": "medium",
+            "source": "3.000 DIA X 12.00 LG"
+          },
+          "outer_diameter_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "outer_dimension_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "wall_thickness_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "quantity": {
+            "value": 20,
+            "confidence": "high",
+            "source": "20 EA 10/16/2026 QUOTE QUOTE"
+          },
+          "cut_tolerance": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "compliance": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "certifications": [
+            {
+              "family": "ASTM",
+              "designation": "ASTM B221",
+              "source": "SPEC: ASTM B221"
+            }
+          ],
+          "notes": "Dimensions interpreted as inches from the surrounding PO dimensions; this line does not explicitly state units. Need by 10/16/2026. No mixed heats within the line. Dimensional AS9102 first article required on first shipment of this part number."
+        },
+        {
+          "ref": "40",
+          "customer_part_number": {
+            "value": "MS-718-RB1250",
+            "confidence": "high",
+            "source": "MS-718-RB1250"
+          },
+          "description_raw": "BAR, RD, NICKEL ALLOY 718\n1.250 DIA X 36.00 LG, SOLN TREATED\nSPEC: AMS 5662\nDFARS 252.225-7009 SPECIALTY METAL",
+          "alloy": {
+            "value": "718",
+            "confidence": "high",
+            "source": "BAR, RD, NICKEL ALLOY 718"
+          },
+          "temper": {
+            "value": "SOLN TREATED",
+            "confidence": "high",
+            "source": "SOLN TREATED"
+          },
+          "product_type": {
+            "value": "Bar",
+            "confidence": "high",
+            "source": "BAR, RD, NICKEL ALLOY 718"
+          },
+          "shape": {
+            "value": "Round",
+            "confidence": "high",
+            "source": "BAR, RD, NICKEL ALLOY 718"
+          },
+          "thickness_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "width_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "length_in": {
+            "value": 36,
+            "confidence": "medium",
+            "source": "1.250 DIA X 36.00 LG, SOLN TREATED"
+          },
+          "height_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "diameter_in": {
+            "value": 1.25,
+            "confidence": "medium",
+            "source": "1.250 DIA X 36.00 LG, SOLN TREATED"
+          },
+          "outer_diameter_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "outer_dimension_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "wall_thickness_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "quantity": {
+            "value": 6,
+            "confidence": "high",
+            "source": "6 EA 10/16/2026 QUOTE QUOTE"
+          },
+          "cut_tolerance": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "compliance": {
+            "value": "dfars",
+            "confidence": "high",
+            "source": "DFARS 252.225-7009 SPECIALTY METAL"
+          },
+          "certifications": [
+            {
+              "family": "AMS",
+              "designation": "AMS 5662",
+              "source": "SPEC: AMS 5662"
+            }
+          ],
+          "notes": "Nickel alloy, not aluminum. Solution treated. Dimensions interpreted as inches from surrounding PO dimensions; units not explicitly stated on this line. Supports government contract FA8811-25-C-0007; DFARS 252.225-7009 and country-of-melt reporting apply to this line only. Need by 10/16/2026. No mixed heats within the line. Dimensional AS9102 first article required on first shipment of this part number."
+        },
+        {
+          "ref": "50",
+          "customer_part_number": {
+            "value": "MS-7050-PL3000",
+            "confidence": "high",
+            "source": "MS-7050-PL3000"
+          },
+          "description_raw": "PLATE, AL 7050, TEMPER PER DWG 400-1182\n3.000 X 18.00 X 30.00 IN",
+          "alloy": {
+            "value": "7050",
+            "confidence": "high",
+            "source": "PLATE, AL 7050, TEMPER PER DWG 400-1182"
+          },
+          "temper": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "product_type": {
+            "value": "Plate",
+            "confidence": "high",
+            "source": "PLATE, AL 7050, TEMPER PER DWG 400-1182"
+          },
+          "shape": {
+            "value": "Plate",
+            "confidence": "high",
+            "source": "PLATE, AL 7050, TEMPER PER DWG 400-1182"
+          },
+          "thickness_in": {
+            "value": 3,
+            "confidence": "medium",
+            "source": "3.000 X 18.00 X 30.00 IN"
+          },
+          "width_in": {
+            "value": 18,
+            "confidence": "medium",
+            "source": "3.000 X 18.00 X 30.00 IN"
+          },
+          "length_in": {
+            "value": 30,
+            "confidence": "medium",
+            "source": "3.000 X 18.00 X 30.00 IN"
+          },
+          "height_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "diameter_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "outer_diameter_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "outer_dimension_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "wall_thickness_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "quantity": {
+            "value": 2,
+            "confidence": "high",
+            "source": "2 EA 10/16/2026 QUOTE QUOTE"
+          },
+          "cut_tolerance": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "compliance": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "certifications": [],
+          "notes": "Temper per Corvane drawing 400-1182 Rev C, not supplied. Request drawing via buyer using an authorized channel because it may contain export-controlled technical data. Do not assume T7451. Need by 10/16/2026. Plate film-protected both faces; no mixed heats within the line. Dimensional AS9102 first article required on first shipment of this part number."
+        }
+      ],
+      "general_notes": "PO Revision A, dated 10/01/2026; original order date 09/29/2026. Program CL-2 STAGE 2; charge number 26-2210-MFG. Pricing per supplier quote; confirm on acknowledgment. Acknowledge to buyer within 2 business days. UPS FREIGHT - CORVANE ACCT 4471-0093; FOB ORIGIN; NET 30. Receiving 07:00-15:00 M-F. Supplier quality clauses SQ-001, SQ-014, SQ-022, SQ-031 apply; full clause documents not supplied. Certified mill test reports and C of C required with shipment, including chemistry, mechanical properties and heat/lot traceability to each piece; heat/lot number marked on every piece. Dimensional AS9102 first article documentation required on first shipment of each Corvane part number. No mixed heats within a line. Plate film-protected both faces. Partial shipments acceptable. DFARS applies to line 40 only, with country of melt stated. Material export classification EAR99; referenced drawings may be export-controlled. CLS-QP-110 Rev F terms apply, including AS9100 or ISO 9001 quality system, authorized-source procurement, AS6174 counterfeit prevention, FOD protection, access rights, nonconformance notification within 24 hours and record retention for at least ten years after final payment."
+    },
+    "flags": [
+      {
+        "severity": "warning",
+        "line_ref": "10",
+        "field": "alloy",
+        "message": "2219-T87 plate is outside Nox's listed aluminum plate catalog; special sourcing and lead time need review.",
+        "suggested_question": "Is special sourcing acceptable for the 2219-T87 plate if standard stock cannot meet the October 16 delivery date?"
+      },
+      {
+        "severity": "warning",
+        "line_ref": "10",
+        "field": "certifications",
+        "message": "Ultrasonic inspection Class A is required, but the governing ultrasonic inspection specification and documentation requirements are not identified.",
+        "suggested_question": "Which ultrasonic inspection specification defines Class A, and what inspection report must accompany line 10?"
+      },
+      {
+        "severity": "info",
+        "line_ref": "20",
+        "field": "quantity",
+        "message": "Revision A changes line 20 from 10 to 12 pieces; 12 pieces extracted.",
+        "suggested_question": "Please confirm acknowledgment and pricing should cover the revised quantity of 12 pieces on line 20."
+      },
+      {
+        "severity": "warning",
+        "line_ref": "30",
+        "field": "diameter_in",
+        "message": "Line 30 does not explicitly state dimensional units; inches were inferred from the other PO lines.",
+        "suggested_question": "Please confirm line 30 is 3.000 inches diameter by 12.00 inches long."
+      },
+      {
+        "severity": "warning",
+        "line_ref": "40",
+        "field": "alloy",
+        "message": "Line 40 requests nickel alloy 718, not aluminum, and is outside Nox's listed catalog.",
+        "suggested_question": "Should Nox special-source the nickel alloy 718 bar, or should line 40 be quoted separately by a nickel-alloy supplier?"
+      },
+      {
+        "severity": "warning",
+        "line_ref": "40",
+        "field": "compliance",
+        "message": "Line 40 alone requires DFARS 252.225-7009 specialty-metal compliance and country-of-melt reporting; compliant sourcing must be verified.",
+        "suggested_question": "Are there any additional melt-country restrictions beyond DFARS 252.225-7009 for line 40?"
+      },
+      {
+        "severity": "warning",
+        "line_ref": "40",
+        "field": "diameter_in",
+        "message": "Line 40 does not explicitly state dimensional units; inches were inferred from the other PO lines.",
+        "suggested_question": "Please confirm line 40 is 1.250 inches diameter by 36.00 inches long."
+      },
+      {
+        "severity": "warning",
+        "line_ref": "50",
+        "field": "temper",
+        "message": "7050 temper is controlled by drawing 400-1182 Rev C, which was not supplied. The drawing may be export-controlled; no stock temper was assumed.",
+        "suggested_question": "Please provide drawing 400-1182 Rev C through an authorized channel, or confirm the required temper and material specification for line 50."
+      },
+      {
+        "severity": "warning",
+        "line_ref": null,
+        "field": "certifications",
+        "message": "Dimensional AS9102 first article documentation is required on the first shipment of each part number; confirm scope and ability to provide before acknowledgment.",
+        "suggested_question": "Please confirm the required dimensional FAI characteristics and documentation format for each part number."
+      },
+      {
+        "severity": "warning",
+        "line_ref": null,
+        "field": "general_notes",
+        "message": "Supplier quality clauses SQ-001, SQ-014, SQ-022 and SQ-031 are incorporated by reference, but their complete texts were not supplied.",
+        "suggested_question": "Please provide the applicable revisions and full texts of SQ-001, SQ-014, SQ-022 and SQ-031 for review before acknowledgment."
+      }
+    ]
+  },
+  "model": "gpt-6.1-sol",
+  "usage": {
+    "input_tokens": 6859,
+    "output_tokens": 4888
+  },
+  "extraction_ms": 150303,
+  "cached_at": "2026-10-02T22:34:30.060Z"
+}

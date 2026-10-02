@@ -138,5 +138,5 @@ export type ParseResult = {
   payload: CreateRfqDto;
   excluded_refs: string[];
   blocking: boolean;
-  meta: { model: string; ms: number; input_tokens?: number; output_tokens?: number; filename?: string };
+  meta: { model: string; ms: number; input_tokens?: number; output_tokens?: number; filename?: string; cached_at?: string };
 };

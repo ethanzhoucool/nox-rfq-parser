@@ -1,0 +1,350 @@
+{
+  "extraction": {
+    "rfq": {
+      "document_type": "rfq",
+      "po_number": {
+        "value": null,
+        "confidence": "high",
+        "source": null
+      },
+      "job_number": {
+        "value": null,
+        "confidence": "low",
+        "source": null
+      },
+      "customer": {
+        "name": {
+          "value": "Tony V.",
+          "confidence": "high",
+          "source": "Tony V."
+        },
+        "company": {
+          "value": "VUKOVICH TOOL & DIE, INC.",
+          "confidence": "high",
+          "source": "VUKOVICH TOOL & DIE, INC."
+        },
+        "email": {
+          "value": null,
+          "confidence": "low",
+          "source": null
+        },
+        "phone": {
+          "value": "586-555-0147",
+          "confidence": "high",
+          "source": "586-555-0147"
+        }
+      },
+      "ship_to_address": {
+        "value": null,
+        "confidence": "low",
+        "source": null
+      },
+      "bill_to_address": {
+        "value": null,
+        "confidence": "low",
+        "source": null
+      },
+      "required_date": {
+        "value": "2026-10-05",
+        "confidence": "medium",
+        "source": "need Mon AM !!"
+      },
+      "mill_certs_required": {
+        "value": true,
+        "confidence": "high",
+        "source": "certs w/ matl"
+      },
+      "lines": [
+        {
+          "ref": "L1",
+          "customer_part_number": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "description_raw": "(3) 6061-T651 2 x 4 x 6",
+          "alloy": {
+            "value": "6061",
+            "confidence": "high",
+            "source": "6061-T651"
+          },
+          "temper": {
+            "value": "T651",
+            "confidence": "high",
+            "source": "6061-T651"
+          },
+          "product_type": {
+            "value": "Plate",
+            "confidence": "low",
+            "source": "6061-T651 2 x 4 x 6"
+          },
+          "shape": {
+            "value": "Plate",
+            "confidence": "low",
+            "source": "6061-T651 2 x 4 x 6"
+          },
+          "thickness_in": {
+            "value": 2,
+            "confidence": "medium",
+            "source": "2 x 4 x 6"
+          },
+          "width_in": {
+            "value": 4,
+            "confidence": "medium",
+            "source": "2 x 4 x 6"
+          },
+          "length_in": {
+            "value": 6,
+            "confidence": "medium",
+            "source": "2 x 4 x 6"
+          },
+          "height_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "diameter_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "outer_diameter_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "outer_dimension_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "wall_thickness_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "quantity": {
+            "value": 3,
+            "confidence": "high",
+            "source": "(3)"
+          },
+          "cut_tolerance": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "compliance": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "certifications": [],
+          "notes": "Provisionally interpreted as plate; rectangular bar is also possible."
+        },
+        {
+          "ref": "L2",
+          "customer_part_number": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "description_raw": "(12) 7075-T651 .375 x 3 x 5",
+          "alloy": {
+            "value": "7075",
+            "confidence": "high",
+            "source": "7075-T651"
+          },
+          "temper": {
+            "value": "T651",
+            "confidence": "high",
+            "source": "7075-T651"
+          },
+          "product_type": {
+            "value": "Plate",
+            "confidence": "medium",
+            "source": "7075-T651 .375 x 3 x 5"
+          },
+          "shape": {
+            "value": "Plate",
+            "confidence": "medium",
+            "source": "7075-T651 .375 x 3 x 5"
+          },
+          "thickness_in": {
+            "value": 0.375,
+            "confidence": "medium",
+            "source": ".375 x 3 x 5"
+          },
+          "width_in": {
+            "value": 3,
+            "confidence": "medium",
+            "source": ".375 x 3 x 5"
+          },
+          "length_in": {
+            "value": 5,
+            "confidence": "medium",
+            "source": ".375 x 3 x 5"
+          },
+          "height_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "diameter_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "outer_diameter_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "outer_dimension_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "wall_thickness_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "quantity": {
+            "value": 12,
+            "confidence": "high",
+            "source": "(12)"
+          },
+          "cut_tolerance": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "compliance": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "certifications": [],
+          "notes": "Plate inferred from temper and dimensional format."
+        },
+        {
+          "ref": "L3",
+          "customer_part_number": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "description_raw": "(1) 5083 1/4 x 48 x 96",
+          "alloy": {
+            "value": "5083",
+            "confidence": "high",
+            "source": "5083"
+          },
+          "temper": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "product_type": {
+            "value": "Plate",
+            "confidence": "medium",
+            "source": "5083 1/4 x 48 x 96"
+          },
+          "shape": {
+            "value": "Plate",
+            "confidence": "medium",
+            "source": "5083 1/4 x 48 x 96"
+          },
+          "thickness_in": {
+            "value": 0.25,
+            "confidence": "medium",
+            "source": "1/4 x 48 x 96"
+          },
+          "width_in": {
+            "value": 48,
+            "confidence": "medium",
+            "source": "1/4 x 48 x 96"
+          },
+          "length_in": {
+            "value": 96,
+            "confidence": "medium",
+            "source": "1/4 x 48 x 96"
+          },
+          "height_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "diameter_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "outer_diameter_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "outer_dimension_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "wall_thickness_in": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "quantity": {
+            "value": 1,
+            "confidence": "high",
+            "source": "(1)"
+          },
+          "cut_tolerance": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "compliance": {
+            "value": null,
+            "confidence": "low",
+            "source": null
+          },
+          "certifications": [],
+          "notes": null
+        }
+      ],
+      "general_notes": "Note dated 10/2. Need Monday morning; interpreted as October 5, 2026. Certs to accompany material. PO to follow. Crossed-out 2024 line marked 'no' excluded. Letterhead address: 23900 Ryan Rd • Warren, MI 48091; not explicitly identified as ship-to or bill-to. Dimensions interpreted as inches."
+    },
+    "flags": [
+      {
+        "severity": "warning",
+        "line_ref": "L1",
+        "field": "product_type",
+        "message": "The 2 x 4 x 6 pieces could be cut plate or rectangular bar; provisionally entered as plate.",
+        "suggested_question": "Should the three 6061-T651 pieces be cut from 2-inch plate, or do you require rectangular bar?"
+      },
+      {
+        "severity": "warning",
+        "line_ref": null,
+        "field": "required_date",
+        "message": "Monday morning is interpreted as October 5, 2026, based on today's date and the note dated 10/2.",
+        "suggested_question": "Please confirm you need the material Monday, October 5, 2026, in the morning, and whether this is delivery or pickup."
+      },
+      {
+        "severity": "warning",
+        "line_ref": null,
+        "field": null,
+        "message": "No dimension units are written; all dimensions have been interpreted as inches.",
+        "suggested_question": "Please confirm all listed dimensions are in inches."
+      }
+    ]
+  },
+  "model": "gpt-6.1-sol",
+  "usage": {
+    "input_tokens": 5646,
+    "output_tokens": 2111
+  },
+  "extraction_ms": 69684,
+  "cached_at": "2026-10-02T22:26:33.441Z"
+}

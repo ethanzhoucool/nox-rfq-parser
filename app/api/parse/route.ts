@@ -13,7 +13,8 @@ export const maxDuration = 300;
 export async function POST(request: Request) {
   try {
     if (!config.mockLlm && (await llmSettings()).provider === "chatgpt") assertLocalRequest(request, true);
-    return NextResponse.json(await parseRfq(await readInput(request)));
+    const fresh = new URL(request.url).searchParams.get("fresh") === "1";
+    return NextResponse.json(await parseRfq(await readInput(request), { fresh }));
   } catch (error) {
     return errorResponse(error);
   }

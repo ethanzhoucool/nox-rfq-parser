@@ -106,7 +106,7 @@ def build_with_page_count(path: Path, story, left: str, form: str, **doc_kwargs)
     doc.build(story, onFirstPage=_footer, onLaterPages=_footer)
 
 
-def logo_block(name: str, tagline: str, addr: str, mark: str):
+def logo_block(name: str, tagline: str, addr: str, mark: str, color: str = "#1F3A5F"):
     mark_tbl = Table(
         [[P(f'<font color="white"><b>{mark}</b></font>', ParagraphStyle("m", parent=CO, fontSize=13, alignment=1))]],
         colWidths=[0.55 * inch],
@@ -115,7 +115,7 @@ def logo_block(name: str, tagline: str, addr: str, mark: str):
     mark_tbl.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#1F3A5F")),
+                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(color)),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
             ]
         )
@@ -573,6 +573,183 @@ def make_06():
     return png, pdf
 
 
+# --------------------------------------------------------------------------- 09 launch-vehicle PO
+# Fictional company. Clause set follows conventions common to space-industry raw-material POs:
+# AS9100 flow-down, AS9102 FAI, export-control notice, DFARS specialty metals (nickel alloy line only),
+# counterfeit prevention, FOD, heat-lot traceability.
+CORVANE_TERMS = [
+    ("ACCEPTANCE", "Supplier's written acknowledgment, commencement of performance, or shipment constitutes acceptance of this Purchase Order, including all referenced Supplier Quality Clauses. Supplier's quotation terms do not apply."),
+    ("QUALITY SYSTEM", "Supplier shall maintain a quality management system compliant with AS9100 or ISO 9001 and shall flow down the requirements of this order, including key characteristics and special requirements, to sub-tier sources."),
+    ("RAW MATERIAL CERTIFICATION", "Each shipment shall include a Certificate of Conformance and the producing mill's certified test report showing chemistry and mechanical properties to the specification and revision cited, with heat/lot number traceable to each piece."),
+    ("FIRST ARTICLE", "Where SQ-014 is invoked, the first shipment of each part number requires First Article Inspection documentation per AS9102. Cut-to-size raw stock: dimensional FAI only."),
+    ("SPECIALTY METALS", "Lines identified as specialty metals (including nickel-base alloys and titanium) shall comply with DFARS 252.225-7009. Supplier shall state country of melt on the certification."),
+    ("COUNTERFEIT PREVENTION", "Supplier shall procure only from the original mill or its authorized distributors and shall maintain a counterfeit-material prevention program consistent with AS6174."),
+    ("EXPORT CONTROL", "Drawings and specifications referenced on this order may contain technical data controlled under the ITAR (22 CFR 120-130) or EAR. Supplier shall not export, re-export or disclose such data to foreign persons without authorization."),
+    ("FOREIGN OBJECT DEBRIS", "Material shall be free of FOD, packaged to prevent damage and contamination, and plate shall be interleaved or film-protected on both faces."),
+    ("NONCONFORMANCE", "Supplier shall notify Buyer within 24 hours of discovering any nonconformance on material already shipped. Supplier may not disposition nonconforming material as use-as-is."),
+    ("RIGHT OF ACCESS", "Corvane, its customers and regulatory agencies shall have right of access to Supplier's facilities and records pertaining to this order."),
+    ("RECORD RETENTION", "Quality records for this order shall be retained for not less than ten (10) years after final payment."),
+    ("GOVERNING LAW", "This order is governed by the laws of the State of Colorado, excluding conflict of laws provisions."),
+]
+
+
+def corvane_logo():
+    """Original vector mark: an ascent trajectory cutting through an orbit ring, plus wordmark."""
+    from reportlab.graphics.shapes import Drawing, Group, Line, PolyLine, Polygon, String, Wedge
+
+    ink = colors.HexColor("#14213D")
+    accent = colors.HexColor("#C8553D")
+    d = Drawing(3.3 * inch, 0.62 * inch)
+
+    ring = Group()
+    cx, cy, r = 22, 22, 17
+    for start, extent in ((200, 250),):
+        w = Wedge(cx, cy, r, start, start + extent, radius1=r - 2.4, strokeColor=None, fillColor=ink)
+        ring.add(w)
+    d.add(ring)
+    trajectory = PolyLine([4, 6, 14, 12, 24, 22, 33, 36, 38, 44], strokeColor=accent, strokeWidth=2.6, strokeLineCap=1)
+    d.add(trajectory)
+    d.add(Polygon([38, 44, 41.5, 42.5, 40.5, 47.5], fillColor=accent, strokeColor=accent, strokeWidth=1.2))
+
+    d.add(String(50, 23, "CORVANE", fontName="Helvetica-Bold", fontSize=19, fillColor=ink))
+    d.add(Line(50, 17, 199, 17, strokeColor=accent, strokeWidth=1))
+    d.add(String(50, 6, "LAUNCH  SYSTEMS", fontName="Helvetica", fontSize=7.5, fillColor=ink))
+    return d
+
+
+def make_09():
+    path = SAMPLES / "09-launch-vehicle-po.pdf"
+    story = []
+
+    hdr_right = boxed(
+        [
+            [P("<b>PURCHASE ORDER</b>", TITLE), ""],
+            [P("PO Number", BOLD), P("<b>CLS-PO-26-03318</b>", ParagraphStyle("pn9", parent=BOLD, fontSize=10))],
+            [P("Revision", BOLD), P("A")],
+            [P("Order Date", BOLD), P("09/29/2026")],
+            [P("Rev Date", BOLD), P("10/01/2026")],
+            [P("Supplier ID", BOLD), P("S-08812")],
+            [P("Buyer", BOLD), P("Priya Raman")],
+        ],
+        [1.1 * inch, 2.0 * inch],
+        style_extra=[("SPAN", (0, 0), (1, 0)), ("BACKGROUND", (0, 0), (1, 0), SHADE)],
+    )
+    head = Table(
+        [[
+            [
+                corvane_logo(),
+                Spacer(1, 3),
+                P("LAUNCH VEHICLES  |  AS9100D CERTIFIED  |  CAGE 9XK41", SMALL),
+                P("11850 E. Corvane Way, Englewood, CO 80112  |  Tel (720) 555-0160", BASE),
+            ],
+            hdr_right,
+        ]],
+        colWidths=[4.4 * inch, 3.1 * inch],
+    )
+    head.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP"), ("LEFTPADDING", (0, 0), (-1, -1), 0)]))
+    story += [head, Spacer(1, 8)]
+
+    addr = boxed(
+        [
+            [P("<b>SUPPLIER</b>"), P("<b>SHIP TO</b>"), P("<b>BILL TO</b>")],
+            [
+                P("Nox Metals<br/>Detroit, MI<br/>Attn: Inside Sales<br/>sales@noxmetals.co"),
+                P("Corvane Launch Systems, Inc.<br/>Building 4 Receiving, Door 12<br/>11920 E. Corvane Way<br/>Englewood, CO 80112<br/>Recv 07:00-15:00 M-F"),
+                P("Corvane Launch Systems, Inc.<br/>Accounts Payable<br/>11850 E. Corvane Way<br/>Englewood, CO 80112<br/>ap@corvanelaunch.com"),
+            ],
+        ],
+        [2.5 * inch] * 3,
+        header_rows=1,
+    )
+    story += [addr, Spacer(1, 6)]
+
+    terms = boxed(
+        [
+            [P("<b>Ship Via</b>"), P("<b>FOB</b>"), P("<b>Payment Terms</b>"), P("<b>Program / Charge No.</b>"), P("<b>Buyer Contact</b>")],
+            [P("UPS FREIGHT - CORVANE ACCT 4471-0093"), P("ORIGIN"), P("NET 30"), P("CL-2 STAGE 2 / 26-2210-MFG"),
+             P("Priya Raman, Commodity Buyer<br/>(720) 555-0164<br/>praman@corvanelaunch.com")],
+            [P("<b>Supplier Quality Clauses</b>"), P("<b>Export Class.</b>"), P("<b>Need By</b>"), P("<b>Govt Contract</b>"), P("<b>Acknowledge To</b>")],
+            [P("SQ-001, SQ-014, SQ-022, SQ-031"), P("EAR99 (material)"), P("10/16/2026"), P("FA8811-25-C-0007 (line 40 only)"), P("Buyer, within 2 business days")],
+        ],
+        [1.55 * inch, 1.05 * inch, 0.9 * inch, 1.75 * inch, 2.25 * inch],
+        style_extra=[("BACKGROUND", (0, 0), (-1, 0), SHADE), ("BACKGROUND", (0, 2), (-1, 2), SHADE)],
+    )
+    story += [terms, Spacer(1, 8)]
+
+    lines = [
+        ("10", "MS-2219-T87-1000",
+         "PLATE, ALUMINUM 2219-T87<br/>1.000 X 48.00 X 96.00 IN<br/>SPEC: ASTM B209<br/>ULTRASONIC INSPECTED, CLASS A",
+         "3", "EA"),
+        ("20", "MS-7075-T7351-1500",
+         "PLATE, AL 7075-T7351<br/>1.500 X 12.00 X 24.00 IN<br/>SPEC: AMS 4078<br/>SAW CUT TOL +.060/-0<br/><i>REV A: QTY WAS 10</i>",
+         "12", "EA"),
+        ("30", "MS-6061-T6511-RB3000",
+         "BAR, RD, AL 6061-T6511<br/>3.000 DIA X 12.00 LG<br/>SPEC: ASTM B221",
+         "20", "EA"),
+        ("40", "MS-718-RB1250",
+         "BAR, RD, NICKEL ALLOY 718<br/>1.250 DIA X 36.00 LG, SOLN TREATED<br/>SPEC: AMS 5662<br/>DFARS 252.225-7009 SPECIALTY METAL",
+         "6", "EA"),
+        ("50", "MS-7050-PL3000",
+         "PLATE, AL 7050, TEMPER PER DWG 400-1182<br/>3.000 X 18.00 X 30.00 IN",
+         "2", "EA"),
+    ]
+    rows = [[P("<b>Ln</b>", TCH), P("<b>Corvane P/N</b>", TCH), P("<b>Description</b>", TCH),
+             P("<b>Qty</b>", TCH), P("<b>UM</b>", TCH), P("<b>Need By</b>", TCH),
+             P("<b>Unit Price</b>", TCH), P("<b>Ext.</b>", TCH)]]
+    for ln, pn, desc, qty, um in lines:
+        rows.append([P(ln), P(pn, MONO), P(desc), P(qty), P(um), P("10/16/2026"), P("QUOTE"), P("QUOTE")])
+    rows.append(["", "", P("<b>*** PRICING PER SUPPLIER QUOTE - CONFIRM ON ACKNOWLEDGMENT ***</b>", SMALL), "", "", "", P("<b>Total</b>"), P("TBD")])
+    tbl = boxed(
+        rows,
+        [0.35 * inch, 1.5 * inch, 2.8 * inch, 0.4 * inch, 0.35 * inch, 0.75 * inch, 0.65 * inch, 0.7 * inch],
+        header_rows=1,
+        style_extra=[("ALIGN", (3, 1), (3, -1), "RIGHT"), ("SPAN", (2, 6), (5, 6))],
+    )
+    story += [tbl, Spacer(1, 8)]
+
+    notes = [
+        "1. REVISION A (10/01/2026): LINE 20 QTY CHANGED FROM 10 TO 12. ALL OTHER TERMS UNCHANGED.",
+        "2. CERTIFIED MILL TEST REPORTS AND C OF C REQUIRED WITH SHIPMENT. HEAT/LOT NO. MARKED ON EACH PIECE (SQ-022).",
+        "3. SQ-014: FIRST ARTICLE (AS9102, DIMENSIONAL ONLY) REQUIRED ON FIRST SHIPMENT OF EACH CORVANE P/N.",
+        "4. LINE 40 SUPPORTS U.S. GOVERNMENT CONTRACT FA8811-25-C-0007. DFARS 252.225-7009 APPLIES TO LINE 40 ONLY. STATE COUNTRY OF MELT.",
+        "5. LINE 50 TEMPER PER CORVANE DWG 400-1182 (REV C). DRAWING MAY CONTAIN EXPORT-CONTROLLED TECHNICAL DATA; REQUEST VIA BUYER.",
+        "6. PLATE TO BE FILM-PROTECTED BOTH FACES. NO MIXED HEATS WITHIN A LINE. PARTIAL SHIPMENTS ACCEPTABLE.",
+    ]
+    story.append(boxed([[P("<b>NOTES</b>")], [P("<br/>".join(notes))]], [7.5 * inch], header_rows=1))
+    story.append(Spacer(1, 10))
+    sig = boxed(
+        [
+            [P("<b>Issued By</b>"), P("<b>Title</b>"), P("<b>Date</b>"), P("<b>Supplier Acknowledgment</b>")],
+            [P("<i>P. Raman</i> (electronic)"), P("Commodity Buyer, Metals"), P("10/01/2026"), P("__________________________  Date ________")],
+        ],
+        [1.6 * inch, 1.7 * inch, 0.9 * inch, 3.3 * inch],
+        header_rows=1,
+    )
+    story += [KeepTogether([sig]), Spacer(1, 6)]
+    story.append(P("THIS ORDER IS SUBJECT TO CORVANE TERMS AND CONDITIONS OF PURCHASE (CLS-QP-110 REV F) AND THE SUPPLIER QUALITY CLAUSES LISTED ABOVE, WHICH ARE INCORPORATED BY REFERENCE.", SMALL))
+
+    story.append(PageBreak())
+    story.append(P("CORVANE LAUNCH SYSTEMS, INC. - TERMS AND CONDITIONS OF PURCHASE", ParagraphStyle("t9", parent=BOLD, fontSize=10, leading=13)))
+    story.append(P("CLS-QP-110 Rev F  |  Applies to CLS-PO-26-03318 Rev A", SMALL))
+    story.append(Spacer(1, 6))
+    left, right = [], []
+    for i, (h, body) in enumerate(CORVANE_TERMS, 1):
+        (left if i <= 6 else right).append(P(f"<b>{i}. {h}.</b> {body}", TC))
+        (left if i <= 6 else right).append(Spacer(1, 4))
+    cols = Table([[left, right]], colWidths=[3.7 * inch, 3.7 * inch])
+    cols.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP")]))
+    story.append(cols)
+
+    build_with_page_count(
+        path, story,
+        left="Generated 10/01/2026 09:47 MDT  |  Corvane ERP / PUR-2",
+        form="CLS-PO-26-03318 Rev A",
+        leftMargin=0.5 * inch, rightMargin=0.5 * inch, topMargin=0.5 * inch, bottomMargin=0.6 * inch,
+        title="Purchase Order CLS-PO-26-03318 Rev A", author="Corvane Launch Systems, Inc.",
+    )
+    return path
+
+
 if __name__ == "__main__":
-    for f in (make_02(), make_05(), *make_04(), *make_06()):
+    for f in (make_02(), make_05(), *make_04(), *make_06(), make_09()):
         print("wrote", Path(f).relative_to(SAMPLES.parent))

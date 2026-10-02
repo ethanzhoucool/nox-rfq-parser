@@ -87,19 +87,24 @@ function inferCompliance(line: ExtractedLine, ctx: Context) {
   if (line.compliance.value && line.compliance.value !== "none") return;
 
   const lineText = [line.description_raw, line.notes].filter(Boolean).join(" ");
-  for (const [text, confidence] of [
-    [lineText, "high"],
-    [ctx.headerText, "medium"],
+  for (const [text, confidence, header] of [
+    [lineText, "high", false],
+    [ctx.headerText, "medium", true],
   ] as const) {
-    if (DFARS.test(text)) {
-      line.compliance = { value: "dfars", confidence, source: snippet(text, DFARS) };
-      return;
-    }
-    if (DOMESTIC.test(text)) {
-      line.compliance = { value: "domestic", confidence, source: snippet(text, DOMESTIC) };
+    for (const [pattern, value] of [[DFARS, "dfars"], [DOMESTIC, "domestic"]] as const) {
+      if (!pattern.test(text) || (header && !headerAppliesTo(line.ref, text, pattern))) continue;
+      line.compliance = { value, confidence, source: snippet(text, pattern) };
       return;
     }
   }
+}
+
+/** A document-level requirement covers every line unless its sentence names lines ("line 40 only"). */
+function headerAppliesTo(ref: string, text: string, pattern: RegExp): boolean {
+  const sentence = text.split(/(?<=[.;])\s+|\n/).find((s) => pattern.test(s)) ?? "";
+  const scope = sentence.match(/\blines?\s+(\d+(?:\s*(?:,|and|&)\s*\d+)*)/i);
+  if (!scope) return true;
+  return scope[1].match(/\d+/g)?.includes(ref.replace(/^\D+/, "")) ?? false;
 }
 
 function convertMetric(line: ExtractedLine, ctx: Context) {
