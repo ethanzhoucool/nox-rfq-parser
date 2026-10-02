@@ -1,0 +1,13 @@
+"BOM EXPORT - Assy HR-AMR-200-A00  Rev C  (AMR Chassis, Gen 2)"
+Exported 10/02/2026 08:15 by pnatarajan  |  Source: Arena PLM  |  Build Qty: 2  |  Need Date: 10/16/2026
+"RFQ to: Nox Metals <sales@noxmetals.co>  |  Contact: Priya Natarajan, Sr. Buyer, Halvorsen Robotics, 616-555-0109, pnatarajan@halvorsenrobotics.com"
+"Ship to: Halvorsen Robotics, 3350 Kraft Ave SE, Grand Rapids, MI 49512  |  Certs required on all raw material"
+
+Find #,Part Number,Descr.,Matl / Spec,Raw Stock Size,Units,Qty/Assy,Ext Qty,Make/Buy,Notes
+10,HR-1001-A,BASE PLATE,AL 6061-T651,1.00 x 12.00 x 18.00,IN,2,4,MAKE,
+20,HR-1002-B,GANTRY SIDE PLATE,AL6061T651,.750 X 8 X 30,IN,4,8,MAKE,"L/R hand, same blank"
+30,HR-1003,TOOLING PLATE,MIC6,1/2 x 18 x 24,IN,1,2,MAKE,"cast plate, must be flat"
+40,HR-1010,END CAP,7075-T6,25.4 x 150 x 300,mm,3,6,MAKE,metric dwg - see HR-1010 sht 2
+50,HR-1011,LINEAR SHAFT BLANK,6061-T6511 RD,1.25 DIA x 36,IN,2,4,MAKE,
+60,HR-2001,SHCS M6x20 CL12.9,STL BLK OX,-,EA,24,48,BUY,stock room
+70,HR-1020,CABLE TRAY COVER,5052-H32,.090 x 10 x 40,IN,1,2,MAKE,brake formed

@@ -1,0 +1,84 @@
+{
+  "expected": {
+    "document_type": "email",
+    "po_number": null,
+    "job_number": "7731",
+    "customer": {
+      "name": "Luis Herrera",
+      "company": "Summit Motorsport Engineering",
+      "email": "lherrera@summitmotorsport-eng.com",
+      "phone": "(704) 555-0186"
+    },
+    "ship_to_address": null,
+    "required_date": "2026-10-07",
+    "mill_certs_required": true,
+    "lines": [
+      {
+        "ref": "1",
+        "customer_part_number": null,
+        "alloy": "7075",
+        "temper": "T651",
+        "product_type": "Bar",
+        "shape": "Round",
+        "thickness_in": null,
+        "width_in": null,
+        "length_in": 12,
+        "height_in": null,
+        "diameter_in": 2.5,
+        "quantity": 6,
+        "cut_tolerance": "+.06/-0",
+        "compliance": "none",
+        "certifications": []
+      },
+      {
+        "ref": "2",
+        "customer_part_number": null,
+        "alloy": "6061",
+        "temper": "T6511",
+        "product_type": "Bar",
+        "shape": "Round",
+        "thickness_in": null,
+        "width_in": null,
+        "length_in": 144,
+        "height_in": null,
+        "diameter_in": 1.0,
+        "quantity": 4,
+        "cut_tolerance": null,
+        "compliance": "none",
+        "certifications": []
+      },
+      {
+        "ref": "3",
+        "customer_part_number": null,
+        "alloy": "2024",
+        "temper": "T351",
+        "product_type": "Bar",
+        "shape": "Round",
+        "thickness_in": null,
+        "width_in": null,
+        "length_in": 36,
+        "height_in": null,
+        "diameter_in": 0.75,
+        "quantity": 10,
+        "cut_tolerance": "+/-.03",
+        "compliance": "none",
+        "certifications": []
+      }
+    ]
+  },
+  "expected_flags": [
+    {
+      "line_ref": "2",
+      "field": "length_in",
+      "severity": "info",
+      "why": "Length given as '12 ft', converted to 144\". 'Full lengths ok, don't cut': confirm 12' mill lengths are stocked."
+    },
+    {
+      "line_ref": "3",
+      "field": "temper",
+      "severity": "error",
+      "why": "2024-T351 round bar isn't in the catalog for Bar (Nox stocks 2024 bar as T3511). Ask if 2024-T3511 is acceptable or route to sales."
+    }
+  ],
+  "notes": "Shorthand: 'rd' = round, 'lg' = long, 'dia' = diameter, 'w/' = with. Cut tolerances differ per line ('+.06/-0' asymmetric, '+/-.03' symmetric, none on line 2) and have no API field, so they go in job_detail. Line 2 length is in FEET (12 ft = 144 in). Line 3 uses a temper that is real for rolled/drawn 2024 bar but isn't in Nox's bar catalog (T3511). Need-by Wed 10/7 is 3 business days out, so not tight (boundary check: < today+2bd = 10/06). Job 7731 is in the subject."
+}

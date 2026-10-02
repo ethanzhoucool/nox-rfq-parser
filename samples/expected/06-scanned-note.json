@@ -1,0 +1,96 @@
+{
+  "expected": {
+    "document_type": "other",
+    "po_number": null,
+    "job_number": null,
+    "customer": {
+      "name": "Tony V.",
+      "company": "Vukovich Tool & Die, Inc.",
+      "email": null,
+      "phone": "586-555-0147"
+    },
+    "ship_to_address": null,
+    "required_date": "2026-10-05",
+    "mill_certs_required": true,
+    "lines": [
+      {
+        "ref": "L1",
+        "customer_part_number": null,
+        "alloy": "6061",
+        "temper": "T651",
+        "product_type": "Plate",
+        "shape": "Plate",
+        "thickness_in": 2.0,
+        "width_in": 4,
+        "length_in": 6,
+        "height_in": null,
+        "diameter_in": null,
+        "quantity": 3,
+        "cut_tolerance": null,
+        "compliance": "none",
+        "certifications": []
+      },
+      {
+        "ref": "L2",
+        "customer_part_number": null,
+        "alloy": "7075",
+        "temper": "T651",
+        "product_type": "Plate",
+        "shape": "Plate",
+        "thickness_in": 0.375,
+        "width_in": 3,
+        "length_in": 5,
+        "height_in": null,
+        "diameter_in": null,
+        "quantity": 12,
+        "cut_tolerance": null,
+        "compliance": "none",
+        "certifications": []
+      },
+      {
+        "ref": "L3",
+        "customer_part_number": null,
+        "alloy": "5083",
+        "temper": null,
+        "product_type": "Plate",
+        "shape": "Plate",
+        "thickness_in": 0.25,
+        "width_in": 48,
+        "length_in": 96,
+        "height_in": null,
+        "diameter_in": null,
+        "quantity": 1,
+        "cut_tolerance": null,
+        "compliance": "none",
+        "certifications": []
+      }
+    ]
+  },
+  "expected_flags": [
+    {
+      "line_ref": null,
+      "field": "required_date",
+      "severity": "warning",
+      "why": "'need Mon AM!!' = Mon 2026-10-05, the next business day after today (Fri 10/02). Tight. Confirm a Friday/same-day ship is possible."
+    },
+    {
+      "line_ref": "L3",
+      "field": "temper",
+      "severity": "warning",
+      "why": "5083 with no temper. Nox stocks 5083 plate in H116 and H321 (both marine grades), so there's no default: ask."
+    },
+    {
+      "line_ref": null,
+      "field": "lines",
+      "severity": "info",
+      "why": "A fourth line '(2) 2024 1 x 6 x 6' is scribbled out and marked 'no'. It's excluded."
+    },
+    {
+      "line_ref": null,
+      "field": "customer",
+      "severity": "info",
+      "why": "Handwritten note: no email. Contact is 'Tony V.' at the letterhead company's phone. 'PO to follow', so there's no PO number yet."
+    }
+  ],
+  "notes": "Image-only input (PNG photo and an image-only scanned PDF with no text layer) of a handwritten memo-pad note. Quantity is in parentheses before the material ('(3) 6061-T651'), the opposite of the other samples. The struck-through 2024 line is still partly legible and must not be extracted. Company comes from the printed letterhead; the handwritten phone (586-555-0147) differs from the letterhead main line (586-555-0140), so prefer the handwritten one for the contact. 'certs w/ matl' = mill certs required. '1/4 x 48 x 96' is a full 4x8 sheet-size plate."
+}

@@ -1,0 +1,17 @@
+{
+  "_note": "Approximation of GET /api/v1/materials built from public noxmetals.co pages. Used only when NOX_API_KEY is not set. Densities in lb/in^3.",
+  "Plate": [
+    { "code": "6061", "density": 0.0975, "tempers": ["T651"] },
+    { "code": "7075", "density": 0.101, "tempers": ["T651", "T7351"] },
+    { "code": "7050", "density": 0.102, "tempers": ["T7451"] },
+    { "code": "2024", "density": 0.1, "tempers": ["T351"] },
+    { "code": "5083", "density": 0.096, "tempers": ["H116", "H321"] },
+    { "code": "MIC-6", "density": 0.0975, "tempers": ["F"] }
+  ],
+  "Bar": [
+    { "code": "6061", "density": 0.0975, "tempers": ["T6511", "T651"] },
+    { "code": "7075", "density": 0.101, "tempers": ["T6511", "T651"] },
+    { "code": "2024", "density": 0.1, "tempers": ["T3511"] }
+  ],
+  "Tube": []
+}

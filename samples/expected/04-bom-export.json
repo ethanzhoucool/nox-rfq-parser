@@ -1,0 +1,159 @@
+{
+  "expected": {
+    "document_type": "spreadsheet",
+    "po_number": null,
+    "job_number": "HR-AMR-200-A00",
+    "customer": {
+      "name": "Priya Natarajan",
+      "company": "Halvorsen Robotics",
+      "email": "pnatarajan@halvorsenrobotics.com",
+      "phone": "616-555-0109"
+    },
+    "ship_to_address": "Halvorsen Robotics, 3350 Kraft Ave SE, Grand Rapids, MI 49512",
+    "required_date": "2026-10-16",
+    "mill_certs_required": true,
+    "lines": [
+      {
+        "ref": "10",
+        "customer_part_number": "HR-1001-A",
+        "alloy": "6061",
+        "temper": "T651",
+        "product_type": "Plate",
+        "shape": "Plate",
+        "thickness_in": 1.0,
+        "width_in": 12,
+        "length_in": 18,
+        "height_in": null,
+        "diameter_in": null,
+        "quantity": 4,
+        "cut_tolerance": null,
+        "compliance": "none",
+        "certifications": []
+      },
+      {
+        "ref": "20",
+        "customer_part_number": "HR-1002-B",
+        "alloy": "6061",
+        "temper": "T651",
+        "product_type": "Plate",
+        "shape": "Plate",
+        "thickness_in": 0.75,
+        "width_in": 8,
+        "length_in": 30,
+        "height_in": null,
+        "diameter_in": null,
+        "quantity": 8,
+        "cut_tolerance": null,
+        "compliance": "none",
+        "certifications": []
+      },
+      {
+        "ref": "30",
+        "customer_part_number": "HR-1003",
+        "alloy": "MIC-6",
+        "temper": null,
+        "product_type": "Plate",
+        "shape": "Plate",
+        "thickness_in": 0.5,
+        "width_in": 18,
+        "length_in": 24,
+        "height_in": null,
+        "diameter_in": null,
+        "quantity": 2,
+        "cut_tolerance": null,
+        "compliance": "none",
+        "certifications": []
+      },
+      {
+        "ref": "40",
+        "customer_part_number": "HR-1010",
+        "alloy": "7075",
+        "temper": "T651",
+        "product_type": "Plate",
+        "shape": "Plate",
+        "thickness_in": 1.0,
+        "width_in": 5.906,
+        "length_in": 11.811,
+        "height_in": null,
+        "diameter_in": null,
+        "quantity": 6,
+        "cut_tolerance": null,
+        "compliance": "none",
+        "certifications": []
+      },
+      {
+        "ref": "50",
+        "customer_part_number": "HR-1011",
+        "alloy": "6061",
+        "temper": "T6511",
+        "product_type": "Bar",
+        "shape": "Round",
+        "thickness_in": null,
+        "width_in": null,
+        "length_in": 36,
+        "height_in": null,
+        "diameter_in": 1.25,
+        "quantity": 4,
+        "cut_tolerance": null,
+        "compliance": "none",
+        "certifications": []
+      },
+      {
+        "ref": "70",
+        "customer_part_number": "HR-1020",
+        "alloy": "5052",
+        "temper": "H32",
+        "product_type": "Plate",
+        "shape": "Plate",
+        "thickness_in": 0.09,
+        "width_in": 10,
+        "length_in": 40,
+        "height_in": null,
+        "diameter_in": null,
+        "quantity": 2,
+        "cut_tolerance": null,
+        "compliance": "none",
+        "certifications": []
+      }
+    ]
+  },
+  "expected_flags": [
+    {
+      "line_ref": "30",
+      "field": "temper",
+      "severity": "warning",
+      "why": "'MIC6' gives no temper. Normalize alloy to MIC-6; it's catalogued only as F, so suggest F."
+    },
+    {
+      "line_ref": "40",
+      "field": "temper",
+      "severity": "warning",
+      "why": "7075-T6 requested on plate. Nox stocks 7075 plate as T651 (and T7351). Normalized to T651; confirm T651 is acceptable."
+    },
+    {
+      "line_ref": "40",
+      "field": "dimensions",
+      "severity": "info",
+      "why": "Converted from mm: 25.4 x 150 x 300 mm = 1.000 x 5.906 x 11.811 in."
+    },
+    {
+      "line_ref": "60",
+      "field": null,
+      "severity": "info",
+      "why": "HR-2001 SHCS M6x20 is purchased hardware (Make/Buy = BUY, steel), not raw material. Excluded from the RFQ."
+    },
+    {
+      "line_ref": "70",
+      "field": "alloy",
+      "severity": "error",
+      "why": "5052-H32 isn't in the Nox catalog (no 5052 plate/sheet stocked). Route to sales or ask if 5083 is acceptable."
+    },
+    {
+      "line_ref": "70",
+      "field": "thickness_in",
+      "severity": "warning",
+      "why": "0.090\" is sheet gauge, below the 0.125\" minimum for stocked plate. Confirm."
+    }
+  ],
+  "notes": "PLM export with 4 metadata rows above the real header (need date, contact, ship-to and 'certs required' are only in those rows). Two quantity columns: Qty/Assy and Ext Qty (Build Qty 2). The order quantity is Ext Qty; using Qty/Assy under-orders by half. Alloy formats vary: 'AL 6061-T651', 'AL6061T651' (temper glued on), 'MIC6' (no hyphen, no temper), '6061-T6511 RD' (shape in the material column). One row is in mm via the Units column only. One row is purchased hardware to exclude, and one row is out-of-catalog 5052 sheet. Refs follow the customer's Find # (10..70); eval may match by order if the parser uses L1..Ln. The .csv twin has identical content."
+}

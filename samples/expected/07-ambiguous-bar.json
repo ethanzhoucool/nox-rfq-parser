@@ -1,0 +1,114 @@
+{
+  "expected": {
+    "document_type": "email",
+    "po_number": null,
+    "job_number": null,
+    "customer": {
+      "name": "Glenn Sato",
+      "company": "Bayview Marine Fabrication LLC",
+      "email": "gsato@bayviewmarinefab.com",
+      "phone": "810-555-0164"
+    },
+    "ship_to_address": "Bayview Marine Fabrication LLC, 1105 Water St, Port Huron, MI 48060",
+    "required_date": "2026-10-31",
+    "mill_certs_required": null,
+    "lines": [
+      {
+        "ref": "L1",
+        "customer_part_number": null,
+        "alloy": "6061",
+        "temper": null,
+        "product_type": "Bar",
+        "shape": "Rectangle",
+        "thickness_in": null,
+        "width_in": 6,
+        "length_in": 48,
+        "height_in": 1.0,
+        "diameter_in": null,
+        "quantity": 20,
+        "cut_tolerance": null,
+        "compliance": "domestic",
+        "certifications": []
+      },
+      {
+        "ref": "L2",
+        "customer_part_number": null,
+        "alloy": "6061",
+        "temper": null,
+        "product_type": "Bar",
+        "shape": "Square",
+        "thickness_in": null,
+        "width_in": 2.0,
+        "length_in": 24,
+        "height_in": null,
+        "diameter_in": null,
+        "quantity": 8,
+        "cut_tolerance": null,
+        "compliance": "domestic",
+        "certifications": []
+      },
+      {
+        "ref": "L3",
+        "customer_part_number": null,
+        "alloy": "7075",
+        "temper": null,
+        "product_type": "Bar",
+        "shape": "Rectangle",
+        "thickness_in": null,
+        "width_in": 3,
+        "length_in": 12,
+        "height_in": 1.5,
+        "diameter_in": null,
+        "quantity": 5,
+        "cut_tolerance": null,
+        "compliance": "domestic",
+        "certifications": []
+      }
+    ]
+  },
+  "expected_flags": [
+    {
+      "line_ref": "L1",
+      "field": "shape",
+      "severity": "warning",
+      "why": "'1x6x48 bar' read as 1\" x 6\" rectangular (flat) bar, 48\" long. Could also mean a 1\" plate strip cut 6 x 48. Confirm bar vs plate."
+    },
+    {
+      "line_ref": "L1",
+      "field": "temper",
+      "severity": "warning",
+      "why": "6061 bar with no temper. Nox stocks T6511 (extruded) and T651. Ask."
+    },
+    {
+      "line_ref": "L2",
+      "field": "product_type",
+      "severity": "warning",
+      "why": "'6061 2 x 2 x 24' has no form. Read as 2\" square bar x 24\" long (medium confidence). Confirm it isn't plate."
+    },
+    {
+      "line_ref": "L2",
+      "field": "temper",
+      "severity": "warning",
+      "why": "No temper for 6061 bar (T6511 or T651)."
+    },
+    {
+      "line_ref": "L3",
+      "field": "temper",
+      "severity": "warning",
+      "why": "7075 flat bar with no temper. Nox stocks T6511 and T651. Ask."
+    },
+    {
+      "line_ref": null,
+      "field": "compliance",
+      "severity": "info",
+      "why": "Buyer asked for 'domestic material only' for a Coast Guard end use. Mapped to compliance=domestic, not dfars. Ask whether DFARS 252.225-7009 country-of-melt certs are actually required."
+    },
+    {
+      "line_ref": null,
+      "field": "mill_certs_required",
+      "severity": "info",
+      "why": "Certs not mentioned. For a government end use, ask if MTRs are needed."
+    }
+  ],
+  "notes": "Every line is shape-ambiguous and none has a temper. 'bar' + 1x6 means flat/rectangle bar: Nox models that as product_type Bar, shape Rectangle with height (1) and width (6), not thickness. '2 x 2 x 24' with no form word is most likely square bar (width 2, length 24, no thickness or height). '1 1/2 x 3 x 12 flat' has a mixed fraction with a space. 'Domestic' isn't DFARS. 'End of month' resolves to 2026-10-31 (a Saturday); 2026-10-30, the last business day, is also an acceptable answer. Ship-to is inferred from 'freight to Port Huron' + signature (medium confidence). The export-control footer is boilerplate."
+}

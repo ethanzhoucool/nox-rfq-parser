@@ -1,0 +1,137 @@
+{
+  "expected": {
+    "document_type": "rfq",
+    "po_number": "RFQ-26-0912",
+    "job_number": null,
+    "customer": {
+      "name": "Kevin Marsh",
+      "company": "Ridgeline Defense Components",
+      "email": "kmarsh@ridgeline-dc.com",
+      "phone": "(256) 555-0173"
+    },
+    "ship_to_address": "Ridgeline Defense Components, Shipping & Receiving, 1850 Sparkman Dr NW, Huntsville, AL 35816",
+    "required_date": "2026-10-16",
+    "mill_certs_required": true,
+    "lines": [
+      {
+        "ref": "1",
+        "customer_part_number": "RDC-10442",
+        "alloy": "6061",
+        "temper": "T651",
+        "product_type": "Plate",
+        "shape": "Plate",
+        "thickness_in": 0.625,
+        "width_in": 12,
+        "length_in": 12,
+        "height_in": null,
+        "diameter_in": null,
+        "quantity": 250,
+        "cut_tolerance": null,
+        "compliance": "dfars",
+        "certifications": [
+          {
+            "family": "AMS",
+            "designation": "AMS 4027"
+          }
+        ]
+      },
+      {
+        "ref": "2",
+        "customer_part_number": "RDC-20871",
+        "alloy": "17-4 PH",
+        "temper": "H1025",
+        "product_type": "Bar",
+        "shape": "Round",
+        "thickness_in": null,
+        "width_in": null,
+        "length_in": 12,
+        "height_in": null,
+        "diameter_in": 1.5,
+        "quantity": 20,
+        "cut_tolerance": null,
+        "compliance": "dfars",
+        "certifications": [
+          {
+            "family": "AMS",
+            "designation": "AMS 5643"
+          }
+        ]
+      },
+      {
+        "ref": "3",
+        "customer_part_number": "RDC-30115",
+        "alloy": "7075",
+        "temper": "T7351",
+        "product_type": "Plate",
+        "shape": "Plate",
+        "thickness_in": 1.0,
+        "width_in": 6,
+        "length_in": 12,
+        "height_in": null,
+        "diameter_in": null,
+        "quantity": 40,
+        "cut_tolerance": null,
+        "compliance": "dfars",
+        "certifications": [
+          {
+            "family": "AMS",
+            "designation": "AMS 4078"
+          }
+        ]
+      },
+      {
+        "ref": "4",
+        "customer_part_number": "RDC-30220",
+        "alloy": "7075",
+        "temper": "T651",
+        "product_type": "Bar",
+        "shape": "Round",
+        "thickness_in": null,
+        "width_in": null,
+        "length_in": 18,
+        "height_in": null,
+        "diameter_in": 3.0,
+        "quantity": 12,
+        "cut_tolerance": null,
+        "compliance": "dfars",
+        "certifications": [
+          {
+            "family": "AMS",
+            "designation": "AMS 4122"
+          },
+          {
+            "family": "QQ",
+            "designation": "AMS-QQ-A-225/9"
+          }
+        ]
+      }
+    ]
+  },
+  "expected_flags": [
+    {
+      "line_ref": "1",
+      "field": "quantity",
+      "severity": "error",
+      "why": "Qty 250 exceeds the Nox API max of 200 per line. Split into two lines (e.g. 200 + 50) or confirm with the customer."
+    },
+    {
+      "line_ref": "2",
+      "field": "alloy",
+      "severity": "error",
+      "why": "17-4 PH (CRES, AMS 5643, cond H1025) is precipitation-hardening stainless, outside Nox's aluminum catalog. Route to sales; the RFQ allows 'No Quote' per line."
+    },
+    {
+      "line_ref": "2",
+      "field": "compliance",
+      "severity": "error",
+      "why": "DFARS required on an alloy not in the catalog; can't be quoted through the API."
+    },
+    {
+      "line_ref": null,
+      "field": "required_date",
+      "severity": "info",
+      "why": "Delivery is '2 WEEKS ARO' (after receipt of order), not a date. Assumed order today, so 2026-10-16. The 10/07 date is the quote due date, not delivery."
+    }
+  ],
+  "notes": "Looks clean, but has two blockers: line 1 quantity over the API limit, and line 2 is stainless steel (17-4 PH / AMS 5643) in an aluminum RFQ. 'CRES' = corrosion-resistant steel and 'COND H1025' is a heat-treat condition, not an aluminum temper. The parser should keep the line and flag it, not drop it or force it into an aluminum alloy. AMS 4078 = 7075-T7351 plate. AMS 4122 + AMS-QQ-A-225/9 = 7075 bar (two certs on one line). Quote due date (10/07) vs delivery (2 wks ARO) is a classic date mix-up. DFARS is order-wide in the instructions block. The RFQ number goes in po_number as the customer reference; job_number is also acceptable."
+}
