@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ChatgptConnection } from "@/components/ChatgptConnection";
 import { FlagsPanel } from "@/components/FlagsPanel";
 import { HeaderCard } from "@/components/HeaderCard";
 import { InputPanel, type ParseSource } from "@/components/InputPanel";
@@ -46,11 +47,10 @@ export default function Home() {
   return (
     <div className="mx-auto max-w-[1600px] px-5 pb-16">
       <TopBar status={status} />
+      <ChatgptConnection status={status} refresh={async () => setStatus(await requestJson<AppStatus>("/api/status"))} />
       {status?.llm === "missing_key" && (
         <div className="mb-5 rounded-lg border border-amber-400/30 bg-amber-400/5 px-4 py-2.5 text-[13px] text-amber-100">
-          <strong className="font-semibold">ANTHROPIC_API_KEY is not set.</strong> Parsing will fail until you add it to{" "}
-          <code className="font-mono text-xs">.env.local</code>, or restart with <code className="font-mono text-xs">MOCK_LLM=1</code> to use a canned
-          extraction.
+          <strong className="font-semibold">The selected AI provider isn't connected.</strong> Connect ChatGPT above, or configure an OpenAI or Claude API key to enable parsing.
         </div>
       )}
       <div className="grid gap-5 lg:grid-cols-[340px_minmax(0,1fr)]">
@@ -86,6 +86,7 @@ function TopBar({ status }: { status: AppStatus | null }) {
       </div>
       {status && (
         <div className="flex flex-wrap gap-2">
+          <Pill label="AI" value={status.llm === "mock" ? "demo" : status.provider === "chatgpt" ? "ChatGPT plan" : status.provider === "openai" ? "OpenAI API" : "Claude"} />
           <Pill label="Model" value={status.model} tone={status.llm === "missing_key" ? "warn" : "neutral"} />
           <Pill label="Catalog" value={status.catalog.source === "live" ? "live /materials" : "seed (approx.)"} tone={status.catalog.source === "live" ? "accent" : "neutral"} />
           <Pill label="Nox" value={status.nox.mode === "live" ? "live submit" : "dry run"} tone={status.nox.mode === "live" ? "accent" : "neutral"} />
