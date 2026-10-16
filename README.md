@@ -13,7 +13,6 @@ Buyers send emails, SAP-style PDF purchase orders, BOM spreadsheets, scanned pag
 - **Catalog-aware validation.** Checks alloy, temper and form against Nox's catalog, flags plate thicknesses Nox doesn't stock, enforces the API's 1–200 quantity limit, and catches tight need-by dates.
 - **Spec callouts.** Resolves AMS, QQ and ASTM callouts (for example AMS 4027 or QQ-A-250/12), DFARS clauses and mill-cert requirements.
 - **Editable review.** Correct any cell or accept a warning, and the flags and payload recompute instantly. Lines with blocking errors are held out of the payload.
-- **Buyer follow-up.** **Copy questions as email** turns open flags into a reply to the buyer.
 - **Safe submission.** Requests carry an idempotency key derived from the body, so retries never create duplicate RFQs. After submitting, the app follows the RFQ until Nox has priced it.
 
 ## Compared with Upload PO on noxmetals.co

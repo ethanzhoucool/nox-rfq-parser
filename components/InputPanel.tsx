@@ -120,9 +120,9 @@ export function DropZone({
         )}
       >
         <UploadSimple size={28} className="text-fg-3" aria-hidden />
-        <span className="text-lg font-medium text-fg">Drop a buyer&apos;s RFQ or PO</span>
+        <span className="text-lg font-medium text-fg">Drop your PO or RFQ</span>
         <span className="max-w-[44ch] text-sm leading-relaxed text-fg-2">
-          PDF, scan, photo, spreadsheet or email. Every value keeps the text it came from, and anything unclear becomes a question for the buyer.
+          PDF, scan, photo, spreadsheet or email. Every value keeps the text it came from, and anything unclear is flagged for you to confirm.
         </span>
       </button>
       <input

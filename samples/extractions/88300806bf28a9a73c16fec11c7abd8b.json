@@ -16,12 +16,12 @@
         "name": {
           "value": "Dana Whitfield",
           "confidence": "high",
-          "source": "Buyer Dana Whitfield"
+          "source": "Dana Whitfield, Sr. Buyer"
         },
         "company": {
           "value": "Arcturus Aerostructures, Inc.",
           "confidence": "high",
-          "source": "Arcturus Aerostructures, Inc."
+          "source": "ARCTURUS AEROSTRUCTURES, INC."
         },
         "email": {
           "value": "dwhitfield@arcturus-aero.com",
@@ -35,14 +35,14 @@
         }
       },
       "ship_to_address": {
-        "value": "Arcturus Aerostructures, Inc.\nPlant 3 - Receiving, Dock 7\n4500 N. Webb Road, Bldg 3\nWichita, KS 67226",
+        "value": "Arcturus Aerostructures, Inc., Plant 3 - Receiving, Dock 7, 4500 N. Webb Road, Bldg 3, Wichita, KS 67226 (Recv hrs 06:00-14:30 M-F)",
         "confidence": "high",
-        "source": "Arcturus Aerostructures, Inc.\nPlant 3 - Receiving, Dock 7\n4500 N. Webb Road, Bldg 3\nWichita, KS 67226"
+        "source": "Plant 3 - Receiving, Dock 7 4500 N. Webb Road, Bldg 3 Wichita, KS 67226"
       },
       "bill_to_address": {
-        "value": "Arcturus Aerostructures, Inc.\nAttn: Accounts Payable\nP.O. Box 7781\nWichita, KS 67277",
+        "value": "Arcturus Aerostructures, Inc., Attn: Accounts Payable, P.O. Box 7781, Wichita, KS 67277",
         "confidence": "high",
-        "source": "Arcturus Aerostructures, Inc.\nAttn: Accounts Payable\nP.O. Box 7781\nWichita, KS 67277"
+        "source": "Attn: Accounts Payable P.O. Box 7781 Wichita, KS 67277"
       },
       "required_date": {
         "value": "2026-10-05",
@@ -52,7 +52,7 @@
       "mill_certs_required": {
         "value": true,
         "confidence": "high",
-        "source": "CERTIFIED MILL TEST REPORTS (MTRs) AND SIGNED C OF C REQUIRED WITH EACH SHIPMENT."
+        "source": "CERTIFIED MILL TEST REPORTS (MTRs) AND SIGNED C OF C REQUIRED WITH EACH SHIPMENT"
       },
       "lines": [
         {
@@ -62,7 +62,7 @@
             "confidence": "high",
             "source": "RM-7075-T7351-0750"
           },
-          "description_raw": "PLATE, ALUMINUM 7075-T7351\n.750 THK X 24.00 X 36.00 IN\nSPEC: AMS-QQ-A-250/12\nSAW CUT TOL +.125/-0",
+          "description_raw": "PLATE, ALUMINUM 7075-T7351 .750 THK X 24.00 X 36.00 IN SPEC: AMS-QQ-A-250/12 SAW CUT TOL +.125/-0",
           "alloy": {
             "value": "7075",
             "confidence": "high",
@@ -76,12 +76,12 @@
           "product_type": {
             "value": "Plate",
             "confidence": "high",
-            "source": "PLATE, ALUMINUM 7075-T7351"
+            "source": "PLATE, ALUMINUM"
           },
           "shape": {
             "value": "Plate",
             "confidence": "high",
-            "source": "PLATE, ALUMINUM 7075-T7351"
+            "source": "PLATE, ALUMINUM"
           },
           "thickness_in": {
             "value": 0.75,
@@ -91,12 +91,12 @@
           "width_in": {
             "value": 24,
             "confidence": "medium",
-            "source": ".750 THK X 24.00 X 36.00 IN"
+            "source": "24.00 X 36.00 IN"
           },
           "length_in": {
             "value": 36,
             "confidence": "medium",
-            "source": ".750 THK X 24.00 X 36.00 IN"
+            "source": "24.00 X 36.00 IN"
           },
           "height_in": {
             "value": null,
@@ -136,7 +136,7 @@
           "compliance": {
             "value": "dfars",
             "confidence": "high",
-            "source": "ALL MATERIAL SHALL BE DFARS COMPLIANT PER DFARS 252.225-7009."
+            "source": "ALL MATERIAL SHALL BE DFARS COMPLIANT PER DFARS 252.225-7009"
           },
           "certifications": [
             {
@@ -145,7 +145,7 @@
               "source": "SPEC: AMS-QQ-A-250/12"
             }
           ],
-          "notes": "Required on dock 2026-10-05."
+          "notes": "DFARS from PO-level note 1. Ink mark each piece with alloy, temper, spec, heat/lot."
         },
         {
           "ref": "20",
@@ -154,7 +154,7 @@
             "confidence": "high",
             "source": "RM-7050-T7451-2000"
           },
-          "description_raw": "PLATE, AL 7050-T7451\n2.000 X 12.000 X 18.000 IN\nSPEC: AMS 4050\nDFARS 252.225-7009 COMPLIANT MATERIAL\nREQ'D",
+          "description_raw": "PLATE, AL 7050-T7451 2.000 X 12.000 X 18.000 IN SPEC: AMS 4050 DFARS 252.225-7009 COMPLIANT MATERIAL REQ'D",
           "alloy": {
             "value": "7050",
             "confidence": "high",
@@ -168,12 +168,12 @@
           "product_type": {
             "value": "Plate",
             "confidence": "high",
-            "source": "PLATE, AL 7050-T7451"
+            "source": "PLATE, AL"
           },
           "shape": {
             "value": "Plate",
             "confidence": "high",
-            "source": "PLATE, AL 7050-T7451"
+            "source": "PLATE, AL"
           },
           "thickness_in": {
             "value": 2,
@@ -228,7 +228,7 @@
           "compliance": {
             "value": "dfars",
             "confidence": "high",
-            "source": "DFARS 252.225-7009 COMPLIANT MATERIAL\nREQ'D"
+            "source": "DFARS 252.225-7009 COMPLIANT MATERIAL REQ'D"
           },
           "certifications": [
             {
@@ -237,108 +237,16 @@
               "source": "SPEC: AMS 4050"
             }
           ],
-          "notes": "Required on dock 2026-10-05."
+          "notes": null
         },
         {
           "ref": "30",
-          "customer_part_number": {
-            "value": "RM-2024-T351-1250",
-            "confidence": "high",
-            "source": "RM-2024-T351-1250"
-          },
-          "description_raw": "PLATE, AL 2024-T351\n1.250 X 10.00 X 20.00 IN\nSPEC: AMS-QQ-A-250/4",
-          "alloy": {
-            "value": "2024",
-            "confidence": "high",
-            "source": "2024-T351"
-          },
-          "temper": {
-            "value": "T351",
-            "confidence": "high",
-            "source": "2024-T351"
-          },
-          "product_type": {
-            "value": "Plate",
-            "confidence": "high",
-            "source": "PLATE, AL 2024-T351"
-          },
-          "shape": {
-            "value": "Plate",
-            "confidence": "high",
-            "source": "PLATE, AL 2024-T351"
-          },
-          "thickness_in": {
-            "value": 1.25,
-            "confidence": "medium",
-            "source": "1.250 X 10.00 X 20.00 IN"
-          },
-          "width_in": {
-            "value": 10,
-            "confidence": "medium",
-            "source": "1.250 X 10.00 X 20.00 IN"
-          },
-          "length_in": {
-            "value": 20,
-            "confidence": "medium",
-            "source": "1.250 X 10.00 X 20.00 IN"
-          },
-          "height_in": {
-            "value": null,
-            "confidence": "low",
-            "source": null
-          },
-          "diameter_in": {
-            "value": null,
-            "confidence": "low",
-            "source": null
-          },
-          "outer_diameter_in": {
-            "value": null,
-            "confidence": "low",
-            "source": null
-          },
-          "outer_dimension_in": {
-            "value": null,
-            "confidence": "low",
-            "source": null
-          },
-          "wall_thickness_in": {
-            "value": null,
-            "confidence": "low",
-            "source": null
-          },
-          "quantity": {
-            "value": 8,
-            "confidence": "high",
-            "source": "8 EA"
-          },
-          "cut_tolerance": {
-            "value": null,
-            "confidence": "low",
-            "source": null
-          },
-          "compliance": {
-            "value": "dfars",
-            "confidence": "high",
-            "source": "ALL MATERIAL SHALL BE DFARS COMPLIANT PER DFARS 252.225-7009."
-          },
-          "certifications": [
-            {
-              "family": "QQ",
-              "designation": "QQ-A-250/4",
-              "source": "SPEC: AMS-QQ-A-250/4"
-            }
-          ],
-          "notes": "Required on dock 2026-10-05."
-        },
-        {
-          "ref": "40",
           "customer_part_number": {
             "value": "RM-6061-T651-0500",
             "confidence": "high",
             "source": "RM-6061-T651-0500"
           },
-          "description_raw": "PLATE, AL 6061-T651 .500 X 48.0 X 96.0\nSPEC: AMS 4027 / ASTM B209\nFULL SHEET - DO NOT CUT",
+          "description_raw": "PLATE, AL 6061-T651 .500 X 48.0 X 96.0 SPEC: AMS 4027 / ASTM B209 FULL SHEET - DO NOT CUT",
           "alloy": {
             "value": "6061",
             "confidence": "high",
@@ -352,12 +260,12 @@
           "product_type": {
             "value": "Plate",
             "confidence": "high",
-            "source": "PLATE, AL 6061-T651"
+            "source": "PLATE, AL"
           },
           "shape": {
             "value": "Plate",
             "confidence": "high",
-            "source": "PLATE, AL 6061-T651"
+            "source": "PLATE, AL"
           },
           "thickness_in": {
             "value": 0.5,
@@ -412,7 +320,7 @@
           "compliance": {
             "value": "dfars",
             "confidence": "high",
-            "source": "ALL MATERIAL SHALL BE DFARS COMPLIANT PER DFARS 252.225-7009."
+            "source": "ALL MATERIAL SHALL BE DFARS COMPLIANT PER DFARS 252.225-7009"
           },
           "certifications": [
             {
@@ -426,40 +334,61 @@
               "source": "SPEC: AMS 4027 / ASTM B209"
             }
           ],
-          "notes": "FULL SHEET - DO NOT CUT. Dimensions interpreted as inches from the other plate lines and full-sheet context. Required on dock 2026-10-05."
+          "notes": "Full 48x96 sheet, do not cut. DFARS from PO-level note 1."
         }
       ],
-      "general_notes": "PO revision 0, dated 10/01/2026. All prices, freight and totals TBD; supplier must confirm price prior to acceptance. Confirm price and delivery by return email within 24 hours; sign and return acknowledgment. All material DFARS compliant per 252.225-7009; country of melt must appear on certifications. Certified MTRs and signed C of C required with each shipment; reference PO and line number on all documents. Material must be mercury free; no weld repair. Each piece must be ink marked with alloy, temper, spec and heat/lot number. No substitutions or partial shipments without buyer approval. Required on dock 10/05/2026. Receiving hours 06:00-14:30 M-F. FedEx Freight Priority; FOB origin; freight prepay & add; payment Net 45. Prime contract FA8620-26-C-0041; DPAS DO-A2; program AT-6 WING SPAR KITS. Quality clauses Q01, Q05, Q12, Q31 incorporated through QAP-100. Terms require mill heat/lot traceability, chemical and mechanical properties on MTRs, protective packaging and applicable DFARS 252.225-7008 compliance."
+      "general_notes": "PO 4500118274 Rev 0, dated 10/01/2026. Prime contract FA8620-26-C-0041, DPAS rating DO-A2, program AT-6 Wing Spar Kits. Quality clauses Q01, Q05, Q12, Q31. Ship via FedEx Freight Priority, FOB Origin, prepay & add, Net 45. All material DFARS 252.225-7009; country of melt to be shown on certs. MTRs and signed C of C required with each shipment, referencing PO and line number. Mercury free, no weld repair. Ink mark each piece with alloy, temper, spec and heat/lot. No partial shipments without buyer approval; no substitutions. Prices TBD; supplier to confirm price and delivery by email within 24 hrs. Subject to Arcturus T&Cs AA-PUR-012 Rev 2024-03 (DFARS 252.225-7008/7009 and 252.246-7007 counterfeit prevention flowed down)."
     },
     "flags": [
       {
-        "severity": "warning",
+        "severity": "error",
         "line_ref": null,
         "field": "required_date",
-        "message": "Expedited delivery must arrive on dock Monday, October 5, only three calendar days from today. Price and delivery acknowledgment is required within 24 hours of the October 1 PO; confirm feasibility before acceptance.",
-        "suggested_question": "Is October 5 on-dock delivery still mandatory, and what delivery date can you accept if expedited freight cannot meet your receiving window?"
-      },
-      {
-        "severity": "warning",
-        "line_ref": "20",
-        "field": "compliance",
-        "message": "DFARS-compliant 7050 is required, with country of melt documented on the certs; qualifying melt source must be verified before quoting.",
-        "suggested_question": "Please confirm whether you have any additional country-of-melt restrictions beyond the stated DFARS requirement for the 7050 plate."
+        "message": "Required on-dock date 10/05/2026 has already passed. The PO was issued 10/01 and today is 10/16. The order is marked expedite to support a line load.",
+        "suggested_question": "Your PO 4500118274 called for material on dock 10/05/2026, and that date has passed. Do you still need this material, and what is your new required date?"
       },
       {
         "severity": "warning",
         "line_ref": null,
-        "field": "certifications",
-        "message": "Quality clauses Q01, Q05, Q12 and Q31 are incorporated through QAP-100, but their text is not supplied. Additional inspection or certification requirements cannot be verified.",
-        "suggested_question": "Please provide QAP-100 clauses Q01, Q05, Q12 and Q31, including applicable revisions, so we can confirm all quality requirements before acceptance."
+        "field": "po_number",
+        "message": "The PO asked for price and delivery confirmation by email within 24 hrs of 10/01. That window has passed, and all prices are TBD.",
+        "suggested_question": "We're sending price and delivery for PO 4500118274 now. Is the PO still open for us to accept, or will you issue a revision?"
+      },
+      {
+        "severity": "warning",
+        "line_ref": null,
+        "field": "compliance",
+        "message": "DFARS 252.225-7009 applies to every line, and country of melt must be shown on certs. Melt source needs to be confirmed for all three plates, especially the 7050-T7451 2\" plate.",
+        "suggested_question": "Can you confirm that DFARS-compliant material with country of melt listed on the MTRs is acceptable from a US or qualifying-country mill for all three lines?"
+      },
+      {
+        "severity": "info",
+        "line_ref": null,
+        "field": null,
+        "message": "This is a DPAS DO-A2 rated order under prime contract FA8620-26-C-0041. Rated-order acceptance and scheduling rules apply.",
+        "suggested_question": "Please confirm the DO-A2 rating applies to all lines on PO 4500118274."
+      },
+      {
+        "severity": "info",
+        "line_ref": null,
+        "field": null,
+        "message": "Special requirements: mercury free, no weld repair, each piece ink marked with alloy, temper, spec and heat/lot, no partial shipments, no substitutions. Quality clauses Q01, Q05, Q12 and Q31 are referenced but not included.",
+        "suggested_question": "Can you send the text of quality clauses Q01, Q05, Q12 and Q31 (QAP-100) so we can confirm we can meet them?"
+      },
+      {
+        "severity": "info",
+        "line_ref": "30",
+        "field": "length_in",
+        "message": "Line 30 is a full 48 x 96 sheet with no cutting. It ships as an uncut mill plate.",
+        "suggested_question": "For line 30, is a standard mill-size 48\" x 96\" plate at mill tolerance acceptable?"
       }
     ]
   },
-  "model": "gpt-6.1-sol",
+  "model": "claude-opus-5-5",
   "usage": {
-    "input_tokens": 6904,
-    "output_tokens": 3989
+    "input_tokens": 2,
+    "output_tokens": 4347
   },
-  "extraction_ms": 123233,
-  "cached_at": "2026-10-02T22:25:23.704Z"
+  "extraction_ms": 36479,
+  "cached_at": "2026-10-16T06:56:06.325Z"
 }

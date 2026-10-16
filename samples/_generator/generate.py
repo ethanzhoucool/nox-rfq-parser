@@ -217,10 +217,7 @@ def make_02():
         ("20", "RM-7050-T7451-2000",
          "PLATE, AL 7050-T7451<br/>2.000 X 12.000 X 18.000 IN<br/>SPEC: AMS 4050<br/>DFARS 252.225-7009 COMPLIANT MATERIAL REQ'D",
          "4", "EA"),
-        ("30", "RM-2024-T351-1250",
-         "PLATE, AL 2024-T351<br/>1.250 X 10.00 X 20.00 IN<br/>SPEC: AMS-QQ-A-250/4",
-         "8", "EA"),
-        ("40", "RM-6061-T651-0500",
+        ("30", "RM-6061-T651-0500",
          "PLATE, AL 6061-T651  .500 X 48.0 X 96.0<br/>SPEC: AMS 4027 / ASTM B209<br/>FULL SHEET - DO NOT CUT",
          "2", "EA"),
     ]
@@ -236,7 +233,7 @@ def make_02():
         rows,
         [0.35 * inch, 1.45 * inch, 2.75 * inch, 0.4 * inch, 0.35 * inch, 0.75 * inch, 0.7 * inch, 0.75 * inch],
         header_rows=1,
-        style_extra=[("ALIGN", (3, 1), (3, -1), "RIGHT"), ("SPAN", (2, 5), (5, 5))],
+        style_extra=[("ALIGN", (3, 1), (3, -1), "RIGHT"), ("SPAN", (2, 4), (5, 4))],
     )
     story += [tbl, Spacer(1, 8)]
 

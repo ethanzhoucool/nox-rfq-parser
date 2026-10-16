@@ -1,9 +1,9 @@
 "use client";
 
-import { ArrowClockwise, CalendarBlank, Check, EnvelopeSimple, WarningOctagon } from "@phosphor-icons/react";
+import { ArrowClockwise, CalendarBlank, WarningOctagon } from "@phosphor-icons/react";
 import { useEffect, useState, type ReactNode } from "react";
 import { ChatgptConnection } from "@/components/ChatgptConnection";
-import { BuyerQuestions, FlagBadge } from "@/components/FlagsPanel";
+import { FlagBadge } from "@/components/FlagsPanel";
 import { HeaderCard } from "@/components/HeaderCard";
 import { DropZone, InputActions, PasteBox, type ParseSource } from "@/components/InputPanel";
 import { LineTable, lineWeight } from "@/components/LineTable";
@@ -11,7 +11,6 @@ import { PayloadPanel, SubmissionStatus, SubmitButton, useSubmission } from "@/c
 import { LABEL, ToolbarButton, cx } from "@/components/ui";
 import { useRfqEditor } from "@/hooks/useRfqEditor";
 import { ApiError, postJson, requestJson } from "@/lib/api-client";
-import { buildQuestionsEmail } from "@/lib/email";
 import type { SampleInfo } from "@/lib/samples";
 import type { ParseResult } from "@/lib/schema";
 import type { AppStatus } from "@/lib/status";
@@ -102,7 +101,7 @@ export default function Home() {
           />
         ) : (
           <>
-            <TitleRow title="Review a buyer's RFQ" actions={inputActions} />
+            <TitleRow title="Get a quote from your PO" actions={inputActions} />
             {pasteOpen && <PasteBox busy={busy} onParse={run} />}
             {parse.state === "idle" && <DropZone busy={busy} onParse={run} onSample={runSample} featured={featured} />}
             {parse.state === "loading" && <Loading label={parse.label} />}
@@ -175,7 +174,6 @@ function Results({
   const submission = useSubmission(editor, status.nox);
   const { meta } = result;
   const { draft } = editor;
-  const email = buildQuestionsEmail(draft, editor.flags);
   const headerFlags = editor.flags.filter((f) => f.line_ref === null);
   const open = editor.flags.filter((f) => f.severity !== "info").length;
   const weights = draft.lines.map((line) => lineWeight(line, status.catalog)).filter((w): w is number => w !== null);
@@ -216,7 +214,7 @@ function Results({
   return (
     <>
       <TitleRow
-        title="Review the request"
+        title="Review your order"
         status={titleStatus}
         actions={
           <>
@@ -241,15 +239,7 @@ function Results({
         <SubmissionStatus control={submission} />
       </div>
 
-      <div className="mt-14 grid gap-12 border-t border-line pt-10 lg:grid-cols-2">
-        <div>
-          <BuyerQuestions editor={editor} />
-          {email && (
-            <div className="mt-5">
-              <CopyQuestions email={email} />
-            </div>
-          )}
-        </div>
+      <div className="mt-14 border-t border-line pt-10">
         <HeaderCard editor={editor} />
       </div>
 
@@ -257,22 +247,6 @@ function Results({
         <PayloadPanel editor={editor} nox={status.nox} />
       </div>
     </>
-  );
-}
-
-function CopyQuestions({ email }: { email: string }) {
-  const [copied, setCopied] = useState(false);
-  return (
-    <ToolbarButton
-      onClick={async () => {
-        await navigator.clipboard.writeText(email);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
-      }}
-    >
-      {copied ? <Check size={16} weight="bold" className="text-ok" aria-hidden /> : <EnvelopeSimple size={16} aria-hidden />}
-      {copied ? "Copied" : "Copy questions as email"}
-    </ToolbarButton>
   );
 }
 
