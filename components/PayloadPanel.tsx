@@ -54,13 +54,13 @@ export function PayloadPanel({ editor, nox }: { editor: RfqEditor; nox: AppStatu
       title="Nox API payload"
       actions={
         <>
-          <div className="flex rounded-md border border-line p-0.5">
+          <div className="flex rounded-sm border border-line p-0.5">
             {(["json", "curl"] as const).map((t) => (
               <button
                 key={t}
                 type="button"
                 onClick={() => setTab(t)}
-                className={cx("rounded-md px-2 py-0.5 text-xs font-medium", tab === t ? "bg-sunken text-fg" : "text-fg-3 hover:text-fg")}
+                className={cx("rounded-sm px-2 py-0.5 text-xs font-medium", tab === t ? "bg-sunken text-fg" : "text-fg-3 hover:text-fg")}
               >
                 {t === "json" ? "JSON" : "curl"}
               </button>
@@ -107,7 +107,7 @@ function SubmissionStatus({ submission }: { submission: Submission }) {
   const { result } = submission;
   if (result.mode === "dry-run") {
     return (
-      <div className="rounded-md border border-line bg-sunken px-3 py-2 text-xs text-fg-2">
+      <div className="rounded-sm border border-line bg-sunken px-3 py-2 text-xs text-fg-2">
         <span className="font-semibold text-accent">Not sent.</span> No Nox API key is set, so this is a dry run. The exact request is in the curl tab, with key{" "}
         <code className="font-mono">{result.request.headers["Idempotency-Key"]}</code>.
       </div>
@@ -119,7 +119,7 @@ function SubmissionStatus({ submission }: { submission: Submission }) {
 function LiveStatus({ id }: { id: string }) {
   const { status, total, error } = useRfqPolling(id);
   return (
-    <div className="rounded-md border border-accent/40 bg-accent/5 px-3 py-2 text-xs text-fg">
+    <div className="rounded-sm border border-accent/40 bg-accent/5 px-3 py-2 text-xs text-fg">
       <span className="font-semibold text-accent">Submitted.</span> RFQ <code className="font-mono">{id}</code>, pricing:{" "}
       <span className="font-medium">{status ?? "…"}</span>
       {total !== null && <>, total ${total.toFixed(2)}</>}

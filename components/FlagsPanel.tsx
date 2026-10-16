@@ -2,22 +2,19 @@
 
 import { Info, Warning, WarningOctagon, type Icon } from "@phosphor-icons/react";
 import type { RfqEditor } from "@/hooks/useRfqEditor";
-import { buildQuestionsEmail } from "@/lib/email";
 import type { Flag, Severity } from "@/lib/schema";
-import { Button, CopyButton, Panel, SEVERITY_STYLE, cx } from "./ui";
+import { Button, Panel, SEVERITY_STYLE, cx } from "./ui";
 
 const GROUPS: Severity[] = ["error", "warning", "info"];
 const ICONS: Record<Severity, Icon> = { error: WarningOctagon, warning: Warning, info: Info };
 
 export function FlagsPanel({ editor }: { editor: RfqEditor }) {
   const { flags } = editor;
-  const email = buildQuestionsEmail(editor.draft, flags);
 
   return (
     <Panel
       title="Flags"
       count={flags.length}
-      actions={email ? <CopyButton text={email} label="Copy questions as email" /> : null}
       className="flex flex-col"
     >
       {flags.length === 0 ? (
@@ -45,15 +42,15 @@ function FlagGroup({ severity, flags, onAccept }: { severity: Severity; flags: F
       <h3 className={cx("mb-2 flex items-center gap-1.5 text-xs font-semibold", style.text)}>
         <GroupIcon size={15} weight="bold" aria-hidden />
         {style.label}
-        <span className={cx("rounded-md px-1.5 font-mono text-[11px]", style.soft)}>{flags.length}</span>
+        <span className={cx("rounded-sm px-1.5 font-mono text-[11px]", style.soft)}>{flags.length}</span>
       </h3>
       <ul className="space-y-2">
         {flags.map((flag) => (
-          <li key={flag.id} className="group rounded-md border border-line bg-sunken px-3 py-2">
+          <li key={flag.id} className="group rounded-sm border border-line bg-sunken px-3 py-2">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 space-y-1">
                 <div className="flex flex-wrap items-center gap-2 text-[11px] text-fg-3">
-                  <span className="rounded-md border border-line bg-surface px-1.5 font-mono text-fg-2">{flag.line_ref ? `Line ${flag.line_ref}` : "Header"}</span>
+                  <span className="rounded-sm border border-line bg-surface px-1.5 font-mono text-fg-2">{flag.line_ref ? `Line ${flag.line_ref}` : "Header"}</span>
                   {flag.field && <span className="font-mono">{flag.field}</span>}
                   <span>{flag.source === "llm" ? "from model" : "from rules"}</span>
                 </div>

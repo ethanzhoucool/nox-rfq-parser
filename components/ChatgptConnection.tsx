@@ -42,7 +42,7 @@ export function ChatgptConnection({ status, refresh }: { status: AppStatus | nul
   };
 
   return (
-    <section aria-label="ChatGPT connection" className="mb-5 rounded-md border border-line bg-surface px-4 py-3">
+    <section aria-label="ChatGPT connection" className="mb-5 rounded-sm border border-line bg-surface px-4 py-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-fg">
@@ -59,7 +59,7 @@ export function ChatgptConnection({ status, refresh }: { status: AppStatus | nul
         <div className="flex flex-wrap items-center gap-2">
           {connection && connection.accounts.length > 0 && !connection.environmentToken && (
             <select aria-label="ChatGPT account" disabled={busy} value={connection.activeId || ""} onChange={(e) => void choose(e.target.value)}
-              className="max-w-72 rounded-md border border-line-strong bg-sunken px-2 py-1.5 text-xs text-fg outline-none focus:border-accent">
+              className="max-w-72 rounded-sm border border-line-strong bg-sunken px-2 py-1.5 text-xs text-fg outline-none focus:border-accent">
               <option value="">Add a ChatGPT account</option>
               {connection.accounts.map((account, i) => <option key={account.id} value={account.id}>
                 {account.email || `ChatGPT account ${i + 1}`}{account.connected ? "" : " (sign in)"}
@@ -68,7 +68,7 @@ export function ChatgptConnection({ status, refresh }: { status: AppStatus | nul
           )}
           {!connection?.environmentToken && !connection?.connected && (
             <a href={`/api/chatgpt/login${connection?.activeId ? `?account=${encodeURIComponent(connection.activeId)}` : ""}`}
-              className="inline-flex rounded-md bg-accent px-3 py-1.5 text-xs font-medium whitespace-nowrap text-on-accent transition-colors hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">Continue with ChatGPT</a>
+              className="inline-flex rounded-sm bg-accent px-3 py-1.5 text-xs font-medium whitespace-nowrap text-on-accent transition-colors hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">Continue with ChatGPT</a>
           )}
           {connection?.connected && !connection.environmentToken && <Button disabled={busy} onClick={() => void disconnect()}>Disconnect</Button>}
           {(connection?.connected || connection?.environmentToken) &&

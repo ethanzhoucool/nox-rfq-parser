@@ -9,6 +9,26 @@ export function cx(...classes: (string | false | null | undefined)[]): string {
   return classes.filter(Boolean).join(" ");
 }
 
+/** Uppercase, letter-spaced label used for column heads and section titles, as on noxmetals.co. */
+export const LABEL = "text-[11px] font-medium uppercase tracking-[0.12em]";
+
+/** Text-and-icon action for the page toolbar. */
+export function ToolbarButton({ children, className, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button
+      type="button"
+      className={cx(
+        "inline-flex items-center gap-1.5 rounded-sm px-1 py-1 text-sm whitespace-nowrap text-fg-2 transition-colors hover:text-fg disabled:cursor-not-allowed disabled:opacity-40",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
+
 export function Panel({
   title,
   count,
@@ -23,11 +43,11 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <section className={cx("rounded-md border border-line bg-surface", className)}>
-      <header className="flex min-h-11 items-center justify-between gap-3 border-b border-line px-4 py-2">
-        <h2 className="flex items-center gap-2 text-sm font-semibold text-fg">
+    <section className={cx("rounded-sm border border-line bg-surface", className)}>
+      <header className="flex min-h-12 items-center justify-between gap-3 border-b border-line px-5 py-2">
+        <h2 className={cx(LABEL, "flex items-center gap-2 text-fg-2")}>
           {title}
-          {count !== undefined && <span className="rounded-md bg-sunken px-1.5 font-mono text-xs font-medium text-fg-2">{count}</span>}
+          {count !== undefined && <span className="rounded-sm bg-sunken px-1.5 font-mono text-[11px] tracking-normal text-fg-2">{count}</span>}
         </h2>
         {actions && <div className="flex items-center gap-2">{actions}</div>}
       </header>
@@ -46,7 +66,7 @@ export function Button({
     <button
       type="button"
       className={cx(
-        "inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors active:translate-y-px disabled:cursor-not-allowed disabled:opacity-40",
+        "inline-flex items-center justify-center gap-1.5 rounded-sm px-3 py-1.5 text-[13px] font-medium whitespace-nowrap transition-colors active:translate-y-px disabled:cursor-not-allowed disabled:opacity-40",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
         variant === "primary" && "bg-accent text-on-accent hover:bg-accent-hover",
         variant === "secondary" && "border border-line-strong bg-surface text-fg hover:bg-hover",
@@ -91,15 +111,15 @@ export function ConfidenceMark({ confidence, edited }: { confidence: Confidence;
   );
 }
 
-export const SEVERITY_STYLE: Record<Severity, { text: string; ring: string; soft: string; label: string }> = {
-  error: { text: "text-err", ring: "ring-1 ring-err/60 bg-err/5", soft: "bg-err/10 text-err", label: "Errors" },
-  warning: { text: "text-warn", ring: "ring-1 ring-warn/60 bg-warn/5", soft: "bg-warn/10 text-warn", label: "Warnings" },
-  info: { text: "text-fg-2", ring: "", soft: "bg-sunken text-fg-2", label: "Notes" },
+export const SEVERITY_STYLE: Record<Severity, { text: string; ring: string; box: string; soft: string; label: string }> = {
+  error: { text: "text-err", ring: "ring-1 ring-err/60 bg-err/5", box: "border-err/70 bg-err/[0.04]", soft: "bg-err/10 text-err", label: "Errors" },
+  warning: { text: "text-warn", ring: "ring-1 ring-warn/60 bg-warn/5", box: "border-warn/70 bg-warn/[0.05]", soft: "bg-warn/10 text-warn", label: "Warnings" },
+  info: { text: "text-fg-2", ring: "", box: "border-line-strong", soft: "bg-sunken text-fg-2", label: "Notes" },
 };
 
 export function StatusChip({ label, value, tone = "neutral" }: { label: string; value: string; tone?: "neutral" | "accent" | "warn" }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface px-2 py-1 text-xs">
+    <span className="inline-flex items-center gap-1.5 rounded-sm border border-line bg-surface px-2 py-1 text-xs">
       <span className="text-fg-3">{label}</span>
       <span className={cx("font-medium", tone === "accent" && "text-accent", tone === "warn" && "text-warn", tone === "neutral" && "text-fg")}>{value}</span>
     </span>
@@ -138,7 +158,7 @@ function TooltipBubble({ position, children }: { position: { left: number; top: 
       ref={bubble}
       role="tooltip"
       style={{ left, top: position.top - 8 }}
-      className="pointer-events-none fixed z-50 max-w-sm -translate-x-1/2 -translate-y-full rounded-md border border-line-strong bg-surface px-3 py-2 text-xs leading-relaxed text-fg shadow-lg shadow-fg/10"
+      className="pointer-events-none fixed z-50 max-w-sm -translate-x-1/2 -translate-y-full rounded-sm border border-line-strong bg-surface px-3 py-2 text-xs leading-relaxed text-fg shadow-lg shadow-fg/10"
     >
       {children}
     </div>,
