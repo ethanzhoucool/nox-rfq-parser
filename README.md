@@ -56,7 +56,7 @@ Extraction can also run on a ChatGPT plan instead of an API key; see [docs/chatg
 
 ### Submitting to Nox
 
-With `NOX_API_KEY` set, **Submit to Nox** sends the RFQ after a confirmation and shows its pricing status. Without a key, the button reads **Create RFQ** and nothing is sent: the panel shows the exact request, as JSON or `curl`, that would have gone to Nox.
+With `NOX_API_KEY` set, **Submit to Nox** sends the RFQ after a confirmation and shows its pricing status. Without a key, the button reads **Create RFQ** and nothing is sent: the Nox API request section shows the exact request, as JSON or `curl`, that would have gone to Nox.
 
 ## How it works
 

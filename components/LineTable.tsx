@@ -1,13 +1,14 @@
 "use client";
 
-import { X } from "@phosphor-icons/react";
+import { CaretDown, X } from "@phosphor-icons/react";
 import type { LineFieldName, RfqEditor } from "@/hooks/useRfqEditor";
 import { worstSeverity } from "@/lib/flags";
-import { findMaterial } from "@/lib/materials";
-import { COMPLIANCE, PRODUCT_TYPES, SHAPES, type Catalog, type DimensionField, type ExtractedLine, type Flag } from "@/lib/schema";
+import { findMaterial, stockPlateThicknesses } from "@/lib/materials";
+import { COMPLIANCE, type Catalog, type DimensionField, type ExtractedLine, type Flag, type ProductType, type Shape } from "@/lib/schema";
 import { effectiveShape, requiredDimensions } from "@/lib/shapes";
 import { parseMeasurement } from "@/lib/units";
 import { EditableSelect, EditableText } from "./EditableField";
+import { FlagBadge } from "./FlagsPanel";
 import { LABEL, SEVERITY_STYLE, Tooltip, cx } from "./ui";
 
 const DIM_ABBREVIATION: Record<DimensionField, string> = {
@@ -21,7 +22,18 @@ const DIM_ABBREVIATION: Record<DimensionField, string> = {
   wall_thickness_in: "WT",
 };
 
-const COLUMNS = ["", "Ref", "Form", "Shape", "Alloy", "Temper", "Compliance", "Dimensions (in)", "Qty", "Part number", "Status", ""];
+/** Product type and shape as one choice, the way the Shape column reads on noxmetals.co. */
+const FORMS: { label: string; productType: ProductType; shape: Shape }[] = [
+  { label: "Plate", productType: "Plate", shape: "Plate" },
+  { label: "Round bar", productType: "Bar", shape: "Round" },
+  { label: "Square bar", productType: "Bar", shape: "Square" },
+  { label: "Flat bar", productType: "Bar", shape: "Rectangle" },
+  { label: "Round tube", productType: "Tube", shape: "Round" },
+  { label: "Square tube", productType: "Tube", shape: "Square" },
+  { label: "Rect tube", productType: "Tube", shape: "Rectangle" },
+];
+
+const COLUMNS = ["", "Shape", "Alloy", "Temper", "Compliance", "Dimensions (in)", "Qty", "Part number", "Each", "Status", ""];
 
 const formatNumber = (value: number) => String(Number(value.toFixed(4)));
 const parseText = (text: string) => text.trim();
@@ -32,22 +44,21 @@ const parseQuantity = (text: string) => {
   return Number.isFinite(quantity) && quantity > 0 ? quantity : undefined;
 };
 const formatPounds = (pounds: number) => pounds.toLocaleString(undefined, { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+const formatInches = (inches: number) => `${formatNumber(inches)}"`;
 
-export function LineTable({ editor, catalog }: { editor: RfqEditor; catalog: Catalog }) {
+export function LineTable({ editor, catalog, footer }: { editor: RfqEditor; catalog: Catalog; footer?: React.ReactNode }) {
   const lines = editor.draft.lines;
   const excluded = new Set(editor.excluded_refs);
-  const weights = lines.map((line) => lineWeight(line, catalog));
-  const known = weights.filter((w): w is number => w !== null);
-  const total = known.reduce((sum, w) => sum + w, 0);
+  const weights = lines.map((line) => lineWeight(line, catalog, 1));
 
   return (
     <section aria-label="Line items">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[1240px] border-separate border-spacing-0 text-sm">
+        <table className="w-full min-w-[1180px] border-separate border-spacing-0 text-sm">
           <thead>
             <tr className={cx(LABEL, "text-left text-fg-2")}>
               {COLUMNS.map((label, i) => (
-                <th key={i} className={cx("border-b border-line px-1.5 pb-4 font-medium", label === "Qty" && "text-center", label === "Status" && "text-right")}>
+                <th key={i} className={cx("border-b border-line px-1.5 pb-4 font-medium", (label === "Qty" || label === "Each" || label === "Status") && "text-right")}>
                   {label}
                 </th>
               ))}
@@ -55,32 +66,19 @@ export function LineTable({ editor, catalog }: { editor: RfqEditor; catalog: Cat
           </thead>
           <tbody>
             {lines.map((line, i) => (
-              <LineRow key={line.ref} line={line} editor={editor} excluded={excluded.has(line.ref)} weight={weights[i]} />
+              <LineRow key={line.ref} line={line} editor={editor} excluded={excluded.has(line.ref)} each={weights[i]} />
             ))}
           </tbody>
         </table>
         {lines.length === 0 && <p className="border-b border-line py-10 text-center text-sm text-fg-3">No line items found in this document.</p>}
       </div>
-      <footer className="flex flex-wrap items-center justify-end gap-x-8 gap-y-2 pt-5 text-sm">
-        <span className="text-fg-3">Hover any box to see the text it was read from.</span>
-        {known.length > 0 && (
-          <span className="text-fg-2">
-            <span className="font-mono font-medium text-fg">{formatPounds(total)}</span> lb
-            {known.length < lines.length && <span className="text-fg-3"> (excludes lines without a size)</span>}
-          </span>
-        )}
-        <span className="text-fg-2">
-          <span className="font-mono font-medium text-fg">
-            {editor.payload.lines.length} of {lines.length}
-          </span>{" "}
-          lines in the RFQ
-        </span>
-      </footer>
+      {footer}
     </section>
   );
 }
 
-function LineRow({ line, editor, excluded, weight }: { line: ExtractedLine; editor: RfqEditor; excluded: boolean; weight: number | null }) {
+function LineRow({ line, editor, excluded, each }: { line: ExtractedLine; editor: RfqEditor; excluded: boolean; each: number | null }) {
+  const weight = each !== null && line.quantity.value ? each * line.quantity.value : null;
   const lineFlags = editor.flags.filter((f) => f.line_ref === line.ref);
   const worst = worstSeverity(lineFlags);
   const severityOf = (field: string) => worstSeverity(lineFlags.filter((f) => f.field === field));
@@ -101,11 +99,10 @@ function LineRow({ line, editor, excluded, weight }: { line: ExtractedLine; edit
 
   return (
     <tr className="group">
-      <td className={cx(cell, "w-[72px] pt-4 pl-0")}>
+      <td className={cx(cell, "w-[76px] pt-3 pl-0")}>
         <MaterialThumb line={line} />
-      </td>
-      <td className={cx(cell, "w-14 pt-[26px]")}>
         <Tooltip
+          className="mt-0.5 flex justify-center"
           content={
             <div className="space-y-1">
               <div className="text-[11px] text-fg-3">Original line</div>
@@ -114,14 +111,11 @@ function LineRow({ line, editor, excluded, weight }: { line: ExtractedLine; edit
             </div>
           }
         >
-          <span className={cx("font-mono text-[13px]", excluded ? "text-err line-through decoration-err/50" : "text-fg-2")}>{line.ref}</span>
+          <span className={cx("font-mono text-[11px]", excluded ? "text-err line-through decoration-err/50" : "text-fg-3")}>Line {line.ref}</span>
         </Tooltip>
       </td>
-      <td className={cx(cell, "w-[112px] py-3")}>
-        <EditableSelect {...common("product_type")} options={PRODUCT_TYPES} onCommit={set("product_type")} boxed />
-      </td>
-      <td className={cx(cell, "w-[124px] py-3")}>
-        <EditableSelect {...common("shape")} options={SHAPES} onCommit={set("shape")} boxed />
+      <td className={cx(cell, "w-[150px] py-3")}>
+        <FormSelect line={line} editor={editor} severity={worstSeverity(lineFlags.filter((f) => f.field === "product_type" || f.field === "shape"))} />
       </td>
       <td className={cx(cell, "w-[104px] py-3")}>
         <EditableText {...common("alloy")} format={String} parse={parseAlloy} onCommit={set("alloy")} className="font-mono" boxed />
@@ -147,7 +141,7 @@ function LineRow({ line, editor, excluded, weight }: { line: ExtractedLine; edit
             </span>
           ))}
         </div>
-        <LineNotes line={line} flags={lineFlags} />
+        <LineNotes line={line} flags={lineFlags} onThickness={set("thickness_in")} />
       </td>
       <td className={cx(cell, "w-[76px] py-3")}>
         <EditableText {...common("quantity")} format={String} parse={parseQuantity} onCommit={set("quantity")} align="right" className="font-mono" boxed />
@@ -155,9 +149,13 @@ function LineRow({ line, editor, excluded, weight }: { line: ExtractedLine; edit
       <td className={cx(cell, "w-[150px] py-3")}>
         <EditableText {...common("customer_part_number")} format={String} parse={parseText} onCommit={set("customer_part_number")} placeholder="" className="font-mono" boxed />
       </td>
+      <td className={cx(cell, "w-[96px] pt-[22px] text-right font-mono text-[13px] text-fg-2")}>{each !== null ? `${formatPounds(each)} lb` : "–"}</td>
       <td className={cx(cell, "w-[120px] pt-4 text-right")}>
-        <LineStatus excluded={excluded} worst={worst} />
-        {weight !== null && <div className="mt-1 font-mono text-xs text-fg-3">{formatPounds(weight)} lb</div>}
+        <div className="flex items-center justify-end gap-1.5">
+          <LineStatus excluded={excluded} worst={worst} />
+          <FlagBadge flags={lineFlags} onAccept={editor.acceptFlag} label={`Notes for line ${line.ref}`} />
+        </div>
+        {weight !== null && <div className="mt-1 font-mono text-xs text-fg-3">{formatPounds(weight)} lb total</div>}
       </td>
       <td className={cx(cell, "w-9 pt-[22px] pr-0 text-right")}>
         <button
@@ -180,55 +178,120 @@ function LineStatus({ excluded, worst }: { excluded: boolean; worst: ReturnType<
 }
 
 /** Certs, tolerance and the line's top flag, shown under the size like the stock-width hint on noxmetals.co. */
-function LineNotes({ line, flags }: { line: ExtractedLine; flags: Flag[] }) {
+function LineNotes({ line, flags, onThickness }: { line: ExtractedLine; flags: Flag[]; onThickness: (value: number) => void }) {
   const top = flags.find((f) => f.severity === "error") ?? flags.find((f) => f.severity === "warning");
   const extra = flags.filter((f) => f.severity !== "info").length - (top ? 1 : 0);
+  const nearest = flags.some((f) => f.id.includes("non-stock-thickness")) ? nearestStock(line) : [];
   if (!top && line.certifications.length === 0 && !line.cut_tolerance.value) return null;
 
   return (
-    <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs">
+    <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+      {top && (
+        <Tooltip content={top.suggested_question && <span>Ask: {top.suggested_question}</span>}>
+          <span className={cx("leading-snug", SEVERITY_STYLE[top.severity].text)}>
+            {nearest.length > 0 ? "Not a stock thickness" : top.message}
+            {extra > 0 && <span className="text-fg-3"> +{extra} more</span>}
+          </span>
+        </Tooltip>
+      )}
+      {nearest.map((inches) => (
+        <button
+          key={inches}
+          type="button"
+          onClick={() => onThickness(inches)}
+          title={`Change thickness to ${formatInches(inches)}`}
+          className="rounded-sm bg-sunken px-1.5 py-0.5 font-mono text-[11px] text-fg transition-colors hover:bg-accent/10 hover:text-accent"
+        >
+          Use {formatInches(inches)}
+        </button>
+      ))}
       {line.certifications.map((cert) => (
         <Tooltip key={cert.designation} content={cert.source && <q className="font-mono text-[11px]">{cert.source}</q>}>
           <span className="rounded-sm bg-ok/10 px-1.5 py-0.5 font-mono text-[11px] text-ok">{cert.designation}</span>
         </Tooltip>
       ))}
       {line.cut_tolerance.value && <span className="rounded-sm bg-sunken px-1.5 py-0.5 font-mono text-[11px] text-fg-2">{line.cut_tolerance.value}</span>}
-      {top && (
-        <Tooltip content={top.suggested_question && <span>Ask: {top.suggested_question}</span>}>
-          <span className={cx("leading-snug", SEVERITY_STYLE[top.severity].text)}>
-            {top.message}
-            {extra > 0 && <span className="text-fg-3"> +{extra} more</span>}
-          </span>
-        </Tooltip>
-      )}
     </div>
+  );
+}
+
+/** The stock thicknesses either side of a non-stock one. */
+function nearestStock(line: ExtractedLine): number[] {
+  const thickness = line.thickness_in.value;
+  const stock = line.alloy.value ? stockPlateThicknesses(line.alloy.value) : null;
+  if (thickness === null || !stock) return [];
+  const below = stock.filter((t) => t < thickness).at(-1);
+  const above = stock.find((t) => t > thickness);
+  return [below, above].filter((t): t is number => t !== undefined);
+}
+
+function FormSelect({ line, editor, severity }: { line: ExtractedLine; editor: RfqEditor; severity: ReturnType<typeof worstSeverity> }) {
+  const shape = effectiveShape(line);
+  const current = FORMS.findIndex((f) => f.productType === line.product_type.value && f.shape === shape);
+  return (
+    <Tooltip className="block" content={line.product_type.source && <q className="font-mono text-[11px]">{line.product_type.source}</q>}>
+      <label
+        className={cx(
+          "relative flex h-11 items-center rounded-sm border bg-surface px-3 text-sm",
+          severity && severity !== "info" ? SEVERITY_STYLE[severity].box : "border-line-strong",
+          current < 0 && "text-fg-3",
+        )}
+      >
+        <span className="flex-1 truncate">{current >= 0 ? FORMS[current].label : "Choose"}</span>
+        <CaretDown size={12} className="text-fg-3" aria-hidden />
+        <select
+          aria-label={`Shape for line ${line.ref}`}
+          value={current}
+          onChange={(e) => {
+            const form = FORMS[Number(e.target.value)];
+            if (form) editor.setForm(line.ref, form.productType, form.shape);
+          }}
+          className="absolute inset-0 cursor-pointer opacity-0"
+        >
+          {current < 0 && <option value={-1}>Choose</option>}
+          {FORMS.map((form, i) => (
+            <option key={form.label} value={i}>
+              {form.label}
+            </option>
+          ))}
+        </select>
+      </label>
+    </Tooltip>
   );
 }
 
 /** A small plate or bar drawn to the line's proportions, standing in for the product photo on noxmetals.co. */
 function MaterialThumb({ line }: { line: ExtractedLine }) {
   const shape = effectiveShape(line);
-  const metal = "bg-gradient-to-b from-[#eceef2] via-[#d3d6dd] to-[#a9adb7] shadow-[0_1px_2px_rgb(60_64_72/0.25)]";
+  const face = "linear-gradient(135deg, #f1f2f5 0%, #d9dce2 55%, #c3c7cf 100%)";
   if (shape === "Round") {
+    const tube = line.product_type.value === "Tube";
     return (
-      <div className="flex h-12 items-center justify-center">
-        <div className={cx("h-3.5 w-14 rounded-full border border-[#9fa3ad]", metal)} />
+      <div className="flex h-11 items-center justify-center">
+        <div className="relative h-4 w-14 rounded-full border border-[#a3a7b0]" style={{ background: "linear-gradient(180deg, #f4f5f7 0%, #d0d3da 50%, #a9adb6 100%)" }}>
+          <div className={cx("absolute top-[1px] right-[1px] h-[12px] w-[7px] rounded-full border border-[#a3a7b0]", tube ? "bg-[#8d919b]" : "bg-[#dfe1e6]")} />
+        </div>
       </div>
     );
   }
-  const thickness = line.thickness_in.value ?? line.height_in.value ?? 0.5;
-  const px = Math.round(Math.min(14, Math.max(3, 3 + thickness * 4)));
+  const thickness = line.thickness_in.value ?? line.height_in.value ?? line.width_in.value ?? 0.5;
+  const edge = Math.round(Math.min(12, Math.max(3, 2 + thickness * 4)));
+  const width = shape === "Plate" ? 46 : 54;
+  const depth = shape === "Plate" ? 18 : 6;
   return (
-    <div className="flex h-12 items-center justify-center">
-      <div style={{ height: px }} className={cx("w-12 -skew-x-[35deg] rounded-[2px] border border-[#9fa3ad]", metal, shape === "Square" && "w-8")} />
+    <div className="flex h-11 items-center justify-center">
+      <div style={{ width }}>
+        <div style={{ height: depth, background: face, transform: "skewX(-40deg)", transformOrigin: "bottom" }} className="border border-b-0 border-[#a3a7b0]" />
+        <div style={{ height: edge }} className="border border-[#a3a7b0] bg-[#b4b8c1]" />
+      </div>
     </div>
   );
 }
 
-function lineWeight(line: ExtractedLine, catalog: Catalog): number | null {
+/** Weight in lb for `quantity` pieces, from the catalog density; tubes and unknown sizes return null. */
+export function lineWeight(line: ExtractedLine, catalog: Catalog, quantity = line.quantity.value): number | null {
   const productType = line.product_type.value;
   const alloy = line.alloy.value;
-  const quantity = line.quantity.value;
   if (!productType || !alloy || !quantity) return null;
   const material = findMaterial(catalog, productType, alloy);
   if (!material) return null;
@@ -237,6 +300,7 @@ function lineWeight(line: ExtractedLine, catalog: Catalog): number | null {
   const shape = effectiveShape(line);
   const length = v("length_in");
   let volume: number | null = null;
+  if (productType === "Tube") return null;
   if (shape === "Plate" && v("thickness_in") && v("width_in") && length) volume = v("thickness_in")! * v("width_in")! * length;
   if (shape === "Rectangle" && v("height_in") && v("width_in") && length) volume = v("height_in")! * v("width_in")! * length;
   if (shape === "Square" && v("width_in") && length) volume = v("width_in")! ** 2 * length;

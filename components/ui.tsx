@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Copy } from "@phosphor-icons/react";
-import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { Confidence, Severity } from "@/lib/schema";
 
@@ -175,5 +175,64 @@ export function SourceQuote({ source, confidence, edited }: { source: string | n
       </div>
       {source ? <q className="block font-mono text-[11px] text-fg">{source}</q> : <span className="text-fg-3">Not found in the document</span>}
     </div>
+  );
+}
+
+/** Click-to-open panel anchored under its trigger, in a portal so scrolling tables never clip it; closes on outside click, scroll or Escape. */
+export function Popover({ trigger, label, children, align = "right" }: { trigger: ReactNode; label: string; children: ReactNode; align?: "left" | "right" }) {
+  const [position, setPosition] = useState<{ x: number; top: number } | null>(null);
+  const button = useRef<HTMLButtonElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!position) return;
+    const close = (e: Event) => {
+      if (e instanceof KeyboardEvent ? e.key === "Escape" : !panel.current?.contains(e.target as Node) && !button.current?.contains(e.target as Node))
+        setPosition(null);
+    };
+    const dismiss = () => setPosition(null);
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", close);
+    window.addEventListener("scroll", dismiss, true);
+    window.addEventListener("resize", dismiss);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("keydown", close);
+      window.removeEventListener("scroll", dismiss, true);
+      window.removeEventListener("resize", dismiss);
+    };
+  }, [position]);
+
+  const toggle = () => {
+    const rect = button.current?.getBoundingClientRect();
+    setPosition((current) => (current || !rect ? null : { x: align === "right" ? window.innerWidth - rect.right : rect.left, top: rect.bottom + 8 }));
+  };
+
+  return (
+    <>
+      <button
+        ref={button}
+        type="button"
+        aria-label={label}
+        aria-expanded={position !== null}
+        onClick={toggle}
+        className="inline-flex rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      >
+        {trigger}
+      </button>
+      {position &&
+        createPortal(
+          <div
+            ref={panel}
+            role="dialog"
+            aria-label={label}
+            style={align === "right" ? { right: position.x, top: position.top } : { left: position.x, top: position.top }}
+            className="fixed z-50 w-[22rem] rounded-sm border border-line-strong bg-surface p-1 text-left shadow-lg shadow-fg/10"
+          >
+            {children}
+          </div>,
+          document.body,
+        )}
+    </>
   );
 }

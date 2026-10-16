@@ -1,14 +1,14 @@
 "use client";
 
-import { ArrowClockwise, Check, CheckCircle, EnvelopeSimple, WarningCircle, WarningOctagon } from "@phosphor-icons/react";
+import { ArrowClockwise, CalendarBlank, Check, EnvelopeSimple, WarningOctagon } from "@phosphor-icons/react";
 import { useEffect, useState, type ReactNode } from "react";
 import { ChatgptConnection } from "@/components/ChatgptConnection";
-import { FlagsPanel } from "@/components/FlagsPanel";
+import { BuyerQuestions, FlagBadge } from "@/components/FlagsPanel";
 import { HeaderCard } from "@/components/HeaderCard";
 import { DropZone, InputActions, PasteBox, type ParseSource } from "@/components/InputPanel";
-import { LineTable } from "@/components/LineTable";
-import { PayloadPanel } from "@/components/PayloadPanel";
-import { ToolbarButton, cx } from "@/components/ui";
+import { LineTable, lineWeight } from "@/components/LineTable";
+import { PayloadPanel, SubmissionStatus, SubmitButton, useSubmission } from "@/components/PayloadPanel";
+import { LABEL, ToolbarButton, cx } from "@/components/ui";
 import { useRfqEditor } from "@/hooks/useRfqEditor";
 import { ApiError, postJson, requestJson } from "@/lib/api-client";
 import { buildQuestionsEmail } from "@/lib/email";
@@ -172,34 +172,55 @@ function Results({
   onRerunLive: () => void;
 }) {
   const editor = useRfqEditor(result, status.catalog, status.today);
+  const submission = useSubmission(editor, status.nox);
   const { meta } = result;
-  const email = buildQuestionsEmail(editor.draft, editor.flags);
-  const errors = editor.flags.filter((f) => f.severity === "error").length;
-  const warnings = editor.flags.filter((f) => f.severity === "warning").length;
+  const { draft } = editor;
+  const email = buildQuestionsEmail(draft, editor.flags);
+  const headerFlags = editor.flags.filter((f) => f.line_ref === null);
+  const open = editor.flags.filter((f) => f.severity !== "info").length;
+  const weights = draft.lines.map((line) => lineWeight(line, status.catalog)).filter((w): w is number => w !== null);
+  const total = weights.reduce((sum, w) => sum + w, 0);
+  const needBy = draft.required_date.value;
 
-  const state = editor.blocking ? (
-    <span className="inline-flex items-center gap-1.5 text-[15px] font-medium text-fg">
-      <WarningCircle size={18} weight="bold" className="text-err" aria-hidden />
-      {errors} to fix before sending
+  const titleStatus = (
+    <span className="inline-flex items-center gap-2 text-[15px] text-fg-2">
+      <CalendarBlank size={18} className="text-fg-3" aria-hidden />
+      {needBy ? <>Need by {formatDate(needBy)}</> : "No need-by date"}
+      <FlagBadge flags={headerFlags} onAccept={editor.acceptFlag} label="Notes about the request" align="left" />
     </span>
-  ) : (
-    <span className="inline-flex items-center gap-1.5 text-[15px] font-medium text-fg">
-      <CheckCircle size={18} weight="bold" className="text-ok" aria-hidden />
-      <span>
-        Ready to send{warnings > 0 && <span className="font-normal text-fg-2">, {warnings} to confirm</span>}
-      </span>
-    </span>
+  );
+
+  const footer = (
+    <div className="flex flex-wrap items-center justify-end gap-x-10 gap-y-4 pt-6">
+      <div className="mr-auto space-y-1 text-sm text-fg-2">
+        <p>
+          <span className="font-mono text-fg">{formatPounds(total)} lb</span>
+          {weights.length < draft.lines.length && <span className="text-fg-3"> (lines without a size or density excluded)</span>}
+        </p>
+        <p className="max-w-[60ch] truncate">{draft.ship_to_address.value ? <>Ship to {draft.ship_to_address.value}</> : <span className="text-fg-3">No ship-to address</span>}</p>
+      </div>
+      <div className="text-right">
+        <p className={cx(LABEL, "text-fg-2")}>Lines in RFQ</p>
+        <p className="font-mono text-[28px] leading-tight font-semibold text-fg">
+          {editor.payload.lines.length}
+          <span className="text-fg-3"> / {draft.lines.length}</span>
+        </p>
+        <p className={cx("text-xs", editor.blocking ? "text-err" : open > 0 ? "text-warn" : "text-ok")}>
+          {editor.blocking ? `${editor.excluded_refs.length} held back` : open > 0 ? `${open} to confirm` : "Ready to send"}
+        </p>
+      </div>
+      <SubmitButton control={submission} />
+    </div>
   );
 
   return (
     <>
       <TitleRow
         title="Review the request"
-        status={state}
+        status={titleStatus}
         actions={
           <>
             {inputActions}
-            {email && <CopyQuestions email={email} />}
             {meta.cached_at && (
               <ToolbarButton onClick={onRerunLive} title={`Cached extraction from ${formatCachedAt(meta.cached_at)}`}>
                 <ArrowClockwise size={16} aria-hidden />
@@ -210,17 +231,30 @@ function Results({
         }
       />
       {paste}
-      <p className="-mt-3 mb-6 text-[13px] text-fg-3">
+      <p className="-mt-3 mb-4 text-[13px] text-fg-3">
         <span className="font-mono text-fg-2">{meta.filename ?? "Pasted text"}</span>
         {meta.cached_at ? <>, cached extraction from {formatCachedAt(meta.cached_at)}</> : <>, read in {(meta.ms / 1000).toFixed(1)}s</>}
+        . Hover any box to see the text it was read from.
       </p>
-      <div className="space-y-8">
-        <HeaderCard editor={editor} />
-        <LineTable editor={editor} catalog={status.catalog} />
-        <div className="grid gap-6 xl:grid-cols-2">
-          <FlagsPanel editor={editor} />
-          <PayloadPanel editor={editor} nox={status.nox} />
+      <LineTable editor={editor} catalog={status.catalog} footer={footer} />
+      <div className="mt-3 flex justify-end">
+        <SubmissionStatus control={submission} />
+      </div>
+
+      <div className="mt-14 grid gap-12 border-t border-line pt-10 lg:grid-cols-2">
+        <div>
+          <BuyerQuestions editor={editor} />
+          {email && (
+            <div className="mt-5">
+              <CopyQuestions email={email} />
+            </div>
+          )}
         </div>
+        <HeaderCard editor={editor} />
+      </div>
+
+      <div className="mt-14 border-t border-line pt-10">
+        <PayloadPanel editor={editor} nox={status.nox} />
       </div>
     </>
   );
@@ -281,6 +315,14 @@ function ErrorCard({ code, message }: { code: string; message: string }) {
       </div>
     </div>
   );
+}
+
+function formatDate(iso: string): string {
+  return new Date(`${iso}T12:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+}
+
+function formatPounds(pounds: number): string {
+  return pounds.toLocaleString(undefined, { maximumFractionDigits: 1, minimumFractionDigits: 1 });
 }
 
 function formatCachedAt(iso: string): string {
