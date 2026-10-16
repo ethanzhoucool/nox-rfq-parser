@@ -6,8 +6,28 @@ Buyers send RFQs as sloppy emails, SAP-style PDF POs, BOM spreadsheets and phone
 file / text ─► Claude / OpenAI (structured output) ─► normalize ─► validate vs catalog ─► CreateRfqDto ─► dry run or live submit
                  every value has a          fractions, mm,   missing fields, qty      only lines with
                  verbatim source quote      glued tempers,   1..200, stocked alloy/   no errors
-                 + confidence               spec callouts    temper, need-by date
+                 + confidence               spec callouts    temper, stock thickness,
+                                                                      need-by date
 ```
+
+## How this differs from Upload PO on noxmetals.co
+
+The **Upload PO** button on [noxmetals.co/quote](https://noxmetals.co/quote) already reads scanned and handwritten PDFs well. It's built for a buyer self-serving an instant quote, so it fits each request to what the quote form can price. This tool is built for the person at Nox who reviews the request, so it keeps everything the buyer asked for and shows what needs a decision.
+
+I ran the same two image-only PDFs (no text layer) through both on 2026-10-15:
+
+| Buyer asked for | Upload PO | This tool |
+|---|---|---|
+| 7075-T651 **.375** × 3 × 5 (handwritten) | Quoted as **0.5"** thick, with no notice | Keeps 0.375 and warns that it isn't a stock thickness for 7075 (nearest 0.25" or 0.5") |
+| 5083 1/4 × 48 × 96 (handwritten) | Line dropped, no notice | Kept. Asks "H116 or H321?" |
+| 2024-T351 1.25 × 10 × 20 (scanned PO) | Line dropped, no notice | Kept and checked against the catalog. If it isn't stocked, it's flagged for sales instead of dropped |
+| "need Mon AM!!" / need-by 10/05 + EXPEDITE | Shows its standard ship date | Flags the tight date and asks if it's a dock or ship date |
+| Crossed-out line on the note | Skipped ✅ | Skipped ✅ |
+| Phone photo (PNG/JPG), XLSX BOM, forwarded `.eml` thread | Not accepted (PDF, DOC, DOCX, CSV only) | Accepted |
+| Where each value came from | Not shown | Hover any cell to see the verbatim quote it was read from, with a confidence dot |
+| Follow-up to the buyer | None | **Copy questions as email** drafts the reply |
+
+Both tools read the documents correctly. The difference is what happens to a line the instant quote can't price: Upload PO changes or drops it, and this tool keeps it and asks someone. That matters most on the larger aerospace and defense POs that go to sales anyway. The two test files are `samples/06-scanned-note.pdf` and an image-only copy of `samples/02-aerospace-po.pdf`.
 
 ## Setup
 
@@ -29,23 +49,6 @@ npm run dev                  # http://127.0.0.1:3000
 | `NOX_API_BASE_URL` | no | Defaults to `https://developer-api.noxmetals.co`. |
 | `MOCK_LLM` | no | `1` returns a canned extraction of a fictional aerospace PO instead of calling an AI provider. Every input gets the same result. Use it to try the UI, validation and payload flow without a key. |
 
-## Connect your ChatGPT plan locally
-
-1. Run `npm run dev` and open `http://127.0.0.1:3000`.
-2. Click **Continue with ChatGPT**, sign in, and allow RFQ Parser to use your ChatGPT plan. Opening the app on `localhost` also works; sign-in first redirects to `127.0.0.1` so its callback and browser cookie use the same host.
-3. After the browser returns, the app displays **Using your ChatGPT plan**. Upload a document or paste an RFQ. The normal extraction schema, normalization, validation, and Nox submission flow apply.
-4. Use the account selector to add, reconnect, or switch accounts. **Manage usage** opens ChatGPT usage settings. **Disconnect** attempts to revoke the renewable session, clears its local tokens, and retains the account/client mapping for later sign-in. If remote revocation can't be confirmed, the UI says so.
-
-No partner API key or client secret is needed for this local personal-project flow. RFQ Parser registers its own OAuth client and persists a stable host ID. It requests `openid profile email offline_access resource.invoke chatgpt.tokens.use.direct`, uses PKCE/state/nonce, verifies ID-token signatures and claims, and checks plan permission before inference. It keeps each account's client ID and tokens separate; refreshes are serialized and replacement credentials are written atomically with file mode `0600` in a directory with mode `0700`.
-
-Tokens stay on the Node server and are never returned to browser JavaScript or API status responses. **Do not paste a cached Codex login token into source code**; this app needs its own ChatGPT plan authorization. For a manually provisioned app token, use the server-only `OPENAI_ACCESS_TOKEN` variable. It cannot be disconnected through the UI, and RFQ Parser doesn't refresh it.
-
-The dev and production scripts bind to loopback. ChatGPT authentication routes and plan-backed parsing reject remote hosts; account mutations and plan parsing also require the app's same-origin `Origin` header. This is a single-user local app, not a hosted multi-user authentication service. Use a separate credential directory for each installation/process. Moving it into a paid or remotely hosted product requires reviewing the available integration and a different session/storage design.
-
-The official [Sign in with ChatGPT guide](https://developers.openai.com/siwc/token-sharing-open-source/sign-in) documents eligibility and registration. [Plan-backed inference](https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference) uses `POST https://api.openai.com/v1/responses` with a bearer access token, `store: false`, and `stream: true`. Requests consume existing ChatGPT plan usage; they don't provide a separate allowance or access to past ChatGPT conversations. PDFs and images are sent inline, and spreadsheets are converted to text locally.
-
-For API-key access instead, set `OPENAI_API_KEY` in `.env.local` and optionally `LLM_PROVIDER=openai`. For Claude, set `ANTHROPIC_API_KEY` and optionally `LLM_PROVIDER=claude`. `MOCK_LLM=1` continues to bypass all model calls.
-
 ## Dry run vs live
 
 Submission is **dry run by default**. A real `POST /api/v1/rfqs` only goes out when both of these are true:
@@ -65,6 +68,23 @@ A live extraction takes one to two minutes, so the AI output is cached by a SHA-
 - Bump `CACHE_VERSION` in `lib/extraction-cache.ts` when the prompt or extraction schema changes.
 - `MOCK_LLM=1` bypasses the cache.
 
+## Connect your ChatGPT plan locally
+
+1. Run `npm run dev` and open `http://127.0.0.1:3000`.
+2. Click **Continue with ChatGPT**, sign in, and allow RFQ Parser to use your ChatGPT plan. Opening the app on `localhost` also works; sign-in first redirects to `127.0.0.1` so its callback and browser cookie use the same host.
+3. After the browser returns, the app displays **Using your ChatGPT plan**. Upload a document or paste an RFQ. The normal extraction schema, normalization, validation, and Nox submission flow apply.
+4. Use the account selector to add, reconnect, or switch accounts. **Manage usage** opens ChatGPT usage settings. **Disconnect** attempts to revoke the renewable session, clears its local tokens, and retains the account/client mapping for later sign-in. If remote revocation can't be confirmed, the UI says so.
+
+No partner API key or client secret is needed for this local personal-project flow. RFQ Parser registers its own OAuth client and persists a stable host ID. It requests `openid profile email offline_access resource.invoke chatgpt.tokens.use.direct`, uses PKCE/state/nonce, verifies ID-token signatures and claims, and checks plan permission before inference. It keeps each account's client ID and tokens separate; refreshes are serialized and replacement credentials are written atomically with file mode `0600` in a directory with mode `0700`.
+
+Tokens stay on the Node server and are never returned to browser JavaScript or API status responses. **Do not paste a cached Codex login token into source code**; this app needs its own ChatGPT plan authorization. For a manually provisioned app token, use the server-only `OPENAI_ACCESS_TOKEN` variable. It cannot be disconnected through the UI, and RFQ Parser doesn't refresh it.
+
+The dev and production scripts bind to loopback. ChatGPT authentication routes and plan-backed parsing reject remote hosts; account mutations and plan parsing also require the app's same-origin `Origin` header. This is a single-user local app, not a hosted multi-user authentication service. Use a separate credential directory for each installation/process. Moving it into a paid or remotely hosted product requires reviewing the available integration and a different session/storage design.
+
+The official [Sign in with ChatGPT guide](https://developers.openai.com/siwc/token-sharing-open-source/sign-in) documents eligibility and registration. [Plan-backed inference](https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference) uses `POST https://api.openai.com/v1/responses` with a bearer access token, `store: false`, and `stream: true`. Requests consume existing ChatGPT plan usage; they don't provide a separate allowance or access to past ChatGPT conversations. PDFs and images are sent inline, and spreadsheets are converted to text locally.
+
+For API-key access instead, set `OPENAI_API_KEY` in `.env.local` and optionally `LLM_PROVIDER=openai`. For Claude, set `ANTHROPIC_API_KEY` and optionally `LLM_PROVIDER=claude`. `MOCK_LLM=1` continues to bypass all model calls.
+
 ## Demo script (about 2 minutes)
 
 The three featured samples are pre-cached, so they work with no key. Run `npm run dev` and use them:
@@ -73,7 +93,8 @@ The three featured samples are pre-cached, so they work with no key. Run `npm ru
 2. **Flags**: errors block a line, warnings ask for confirmation (for example "T6 requested on plate; Nox stocks T651"). Click **Copy questions as email** to get a ready-to-send reply to the buyer.
 3. **Fix a cell**: change a temper or a qty. The flags, the excluded lines and the payload all recompute right away. Accept a warning to clear it.
 4. **Payload**: switch between JSON and curl, then click **Create RFQ (dry run)**. With a Nox key, **Submit to Nox** creates the real RFQ and shows Wayne's pricing status.
-5. Optional: **`06-scanned-note.png`** (handwriting, crossed-out line skipped) and **`05-rfq-out-of-catalog.pdf`** (qty 250 blocked, 17-4 PH routed to sales).
+5. **Side by side**: upload `06-scanned-note.pdf` to Upload PO on noxmetals.co/quote, then open `06-scanned-note.png` here. There, the 7075 line comes back as 0.5" and the 5083 line is missing. Here, every line is kept, the 0.375" thickness and the 5083 temper are flagged, and the crossed-out line is still skipped.
+6. Optional: **`05-rfq-out-of-catalog.pdf`** (qty 250 blocked, 17-4 PH routed to sales).
 
 ## Scripts
 
@@ -116,6 +137,7 @@ scripts/eval.ts           accuracy harness
 ## Notes and limits
 
 - The seed catalog is an approximation built from public noxmetals.co pages. The header shows which catalog is active. Following the real API docs, `Tube` is empty, since tube isn't quoted through the API.
+- Stock plate thicknesses for 6061, 7075 and 7050 come from the instant-quote dropdown (`data/plate-thicknesses.json`, read 2026-10-15). The materials API doesn't return thicknesses, so this list needs a refresh when Nox changes its stock. Other alloys aren't thickness-checked.
 - The API has no need-by, PO or tolerance fields. The PO number, customer part number, cut tolerance, need-by date and the mill-cert requirement go into each line's `job_detail`. The PO number, company and date also go into `subject`.
 - Lines with blocking errors are left out of the payload, and the UI says which ones. You can still submit the clean lines.
 - `xlsx` (SheetJS 0.18.5 from npm) has a known advisory that applies to untrusted spreadsheets. That's acceptable for a demo. For production, switch to the SheetJS CDN build.

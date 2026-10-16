@@ -1,6 +1,6 @@
 import { addBusinessDays, isIsoDate } from "./dates";
 import { ruleFlag } from "./flags";
-import { findMaterial, stocksTemper } from "./materials";
+import { findMaterial, stockPlateThicknesses, stocksTemper } from "./materials";
 import type { Catalog, ExtractedLine, ExtractedRfq, Field, Flag, MaterialDto } from "./schema";
 import { DIMENSION_LABELS, describeForm, effectiveShape, requiredDimensions } from "./shapes";
 import { capitalize } from "./text";
@@ -218,8 +218,29 @@ function validateDimensions(line: ExtractedLine): Flag[] {
         suggested_question: `Line ${line.ref}: can you confirm the plate thickness of ${thickness}"?`,
       }),
     );
+  } else if (productType === "Plate" && thickness !== null && line.alloy.value) {
+    flags.push(...validateStockThickness(line, line.alloy.value, thickness));
   }
   return flags;
+}
+
+/** Flags a plate thickness Nox doesn't stock instead of rounding it to the nearest one. */
+function validateStockThickness(line: ExtractedLine, alloy: string, thickness: number): Flag[] {
+  const stock = stockPlateThicknesses(alloy);
+  if (!stock || stock.some((t) => Math.abs(t - thickness) < 0.001)) return [];
+
+  const below = stock.filter((t) => t < thickness).at(-1);
+  const above = stock.find((t) => t > thickness);
+  const nearest = [below, above].filter((t) => t !== undefined).map((t) => `${t}"`).join(" or ");
+  return [
+    ruleFlag("non-stock-thickness", {
+      severity: "warning",
+      line_ref: line.ref,
+      field: "thickness_in",
+      message: `${thickness}" isn't a stock thickness for ${alloy} plate (nearest: ${nearest}). Not rounded; confirm with the buyer or route to sales.`,
+      suggested_question: `Line ${line.ref}: we don't stock ${alloy} plate at ${thickness}". Would ${nearest} work, or do you need it machined to ${thickness}"?`,
+    }),
+  ];
 }
 
 function validateTemper(line: ExtractedLine, material: MaterialDto): Flag[] {
