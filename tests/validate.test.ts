@@ -61,6 +61,14 @@ describe("validate", () => {
     ]);
   });
 
+  it("warns on a plate thickness Nox doesn't stock instead of rounding it", () => {
+    const [flag] = flagsFor(line({ alloy: known("7075"), thickness_in: known(0.375) }));
+    expect(flag).toMatchObject({ severity: "warning", field: "thickness_in" });
+    expect(flag.message).toContain('nearest: 0.25" or 0.5"');
+    expect(flagsFor(line({ alloy: known("6061"), thickness_in: known(0.375) }))).toEqual([]);
+    expect(flagsFor(line({ alloy: known("7075"), thickness_in: known(0.75) }))).toEqual([]);
+  });
+
   it("warns on unusual plate thickness", () => {
     expect(summary(flagsFor(line({ thickness_in: known(8) })))).toEqual(["warning:L1:thickness_in"]);
     expect(summary(flagsFor(line({ thickness_in: known(0.063) })))).toEqual(["warning:L1:thickness_in"]);

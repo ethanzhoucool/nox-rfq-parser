@@ -1,121 +1,106 @@
 # RFQ Parser for Nox Metals
 
-Buyers send RFQs as sloppy emails, SAP-style PDF POs, BOM spreadsheets and phone photos of handwritten notes. This app turns any of those into a validated request for Nox's public API (`POST /api/v1/rfqs`). Anything missing or ambiguous gets flagged for a person to check. Nothing is filled in silently.
+Turns a buyer's RFQ or PO, in whatever form it arrives, into a validated request for the Nox Metals RFQ API (`POST /api/v1/rfqs`).
 
-```
-file / text ─► Claude / OpenAI (structured output) ─► normalize ─► validate vs catalog ─► CreateRfqDto ─► dry run or live submit
-                 every value has a          fractions, mm,   missing fields, qty      only lines with
-                 verbatim source quote      glued tempers,   1..200, stocked alloy/   no errors
-                 + confidence               spec callouts    temper, need-by date
-```
+Buyers send emails, SAP-style PDF purchase orders, BOM spreadsheets, scanned pages and phone photos of handwritten notes. RFQ Parser extracts every line item, checks it against Nox's catalog and API rules, and shows a reviewer what needs a decision. Missing, ambiguous or out-of-stock items become flags with a ready-to-send question for the buyer. Nothing is filled in, rounded or dropped silently.
 
-## Setup
+![RFQ Parser reviewing a handwritten note: three line items, a non-stock 0.375" thickness flagged, and the Nox API payload](docs/screenshot.png)
+
+## Features
+
+- **Any input format.** PDF (including scans with no text layer), PNG/JPG photos, XLSX/CSV, `.eml` threads and pasted text.
+- **Traceable values.** Every extracted field keeps the verbatim text it came from and a confidence level. Hover a cell to see its source.
+- **Catalog-aware validation.** Checks alloy, temper and form against Nox's catalog, flags plate thicknesses Nox doesn't stock, enforces the API's 1–200 quantity limit, and catches tight need-by dates.
+- **Spec callouts.** Resolves AMS, QQ and ASTM callouts (for example AMS 4027 or QQ-A-250/12), DFARS clauses and mill-cert requirements.
+- **Editable review.** Correct any cell or accept a warning, and the flags and payload recompute instantly. Lines with blocking errors are held out of the payload.
+- **Buyer follow-up.** **Copy questions as email** turns open flags into a reply to the buyer.
+- **Safe submission.** Requests carry an idempotency key derived from the body, so retries never create duplicate RFQs. After submitting, the app follows the RFQ until Nox has priced it.
+
+## Compared with Upload PO on noxmetals.co
+
+The **Upload PO** feature on [noxmetals.co/quote](https://noxmetals.co/quote) reads scanned and handwritten documents well. It's designed for a buyer getting an instant quote, so it fits each request to what the quote form can price. RFQ Parser is designed for the person reviewing the request, so it keeps everything the buyer asked for.
+
+The same two image-only PDFs were run through both on 2026-10-15:
+
+| Buyer asked for | Upload PO | RFQ Parser |
+|---|---|---|
+| 7075-T651 **.375** × 3 × 5 (handwritten) | Quoted at **0.5"** thick, with no notice | Keeps 0.375" and flags it as a non-stock thickness (nearest 0.25" or 0.5") |
+| 5083 1/4 × 48 × 96 (handwritten) | Line dropped | Kept, with a question: H116 or H321? |
+| 2024-T351 1.25 × 10 × 20 (scanned PO) | Line dropped | Kept and checked against the catalog. If it isn't stocked, it's routed to sales |
+| Need-by 10/05, "EXPEDITE" | Standard ship date shown | Flagged as a tight date |
+| Crossed-out line | Skipped | Skipped |
+| Photos, XLSX, email threads | Not accepted | Accepted |
+
+## Getting started
+
+Requires Node.js 20 or later.
 
 ```bash
 npm install
-cp .env.example .env.local   # then fill in what you have
-npm run dev                  # http://127.0.0.1:3000
+cp .env.example .env.local
+npm run dev
 ```
 
-| Variable | Required | What it does |
-|---|---|---|
-| `ANTHROPIC_API_KEY` | for Claude parsing | Extraction with `claude-opus-5-5` (adaptive thinking, medium effort, Zod structured output). |
-| `OPENAI_API_KEY` | for OpenAI API parsing | Uses the Responses API; usage is billed to your OpenAI Platform account. |
-| `OPENAI_ACCESS_TOKEN` | no | Optional app-issued OAuth access token with `chatgpt.tokens.use.direct`. The UI sign-in flow is preferred because it also stores and rotates refresh tokens. An environment token must be renewed by its owner. |
-| `OPENAI_MODEL` | no | Defaults to `gpt-6.1-sol`. Choose a model available to the API account or connected ChatGPT plan. |
-| `LLM_PROVIDER` | no | `claude`, `openai`, or `chatgpt`. Without an explicit setting, a connected ChatGPT plan takes priority, followed by an OpenAI API key, then Claude. The app displays the provider and model. Errors never silently switch providers or billing accounts. |
-| `CHATGPT_AUTH_DIR` | no | Protected local credentials directory; defaults to gitignored `.chatgpt/`. Run one server process per directory. |
-| `NOX_API_KEY` | no | Turns on the live materials catalog (`GET /api/v1/materials`, cached for 10 min) and enables the **Submit to Nox** button. |
-| `NOX_API_BASE_URL` | no | Defaults to `https://developer-api.noxmetals.co`. |
-| `MOCK_LLM` | no | `1` returns a canned extraction of a fictional aerospace PO instead of calling an AI provider. Every input gets the same result. Use it to try the UI, validation and payload flow without a key. |
+Open http://127.0.0.1:3000 and pick a sample document. The bundled samples have cached extractions, so they open instantly without any keys. To parse new documents, add an AI provider key to `.env.local`.
 
-## Connect your ChatGPT plan locally
-
-1. Run `npm run dev` and open `http://127.0.0.1:3000`.
-2. Click **Continue with ChatGPT**, sign in, and allow RFQ Parser to use your ChatGPT plan. Opening the app on `localhost` also works; sign-in first redirects to `127.0.0.1` so its callback and browser cookie use the same host.
-3. After the browser returns, the app displays **Using your ChatGPT plan**. Upload a document or paste an RFQ. The normal extraction schema, normalization, validation, and Nox submission flow apply.
-4. Use the account selector to add, reconnect, or switch accounts. **Manage usage** opens ChatGPT usage settings. **Disconnect** attempts to revoke the renewable session, clears its local tokens, and retains the account/client mapping for later sign-in. If remote revocation can't be confirmed, the UI says so.
-
-No partner API key or client secret is needed for this local personal-project flow. RFQ Parser registers its own OAuth client and persists a stable host ID. It requests `openid profile email offline_access resource.invoke chatgpt.tokens.use.direct`, uses PKCE/state/nonce, verifies ID-token signatures and claims, and checks plan permission before inference. It keeps each account's client ID and tokens separate; refreshes are serialized and replacement credentials are written atomically with file mode `0600` in a directory with mode `0700`.
-
-Tokens stay on the Node server and are never returned to browser JavaScript or API status responses. **Do not paste a cached Codex login token into source code**; this app needs its own ChatGPT plan authorization. For a manually provisioned app token, use the server-only `OPENAI_ACCESS_TOKEN` variable. It cannot be disconnected through the UI, and RFQ Parser doesn't refresh it.
-
-The dev and production scripts bind to loopback. ChatGPT authentication routes and plan-backed parsing reject remote hosts; account mutations and plan parsing also require the app's same-origin `Origin` header. This is a single-user local app, not a hosted multi-user authentication service. Use a separate credential directory for each installation/process. Moving it into a paid or remotely hosted product requires reviewing the available integration and a different session/storage design.
-
-The official [Sign in with ChatGPT guide](https://developers.openai.com/siwc/token-sharing-open-source/sign-in) documents eligibility and registration. [Plan-backed inference](https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference) uses `POST https://api.openai.com/v1/responses` with a bearer access token, `store: false`, and `stream: true`. Requests consume existing ChatGPT plan usage; they don't provide a separate allowance or access to past ChatGPT conversations. PDFs and images are sent inline, and spreadsheets are converted to text locally.
-
-For API-key access instead, set `OPENAI_API_KEY` in `.env.local` and optionally `LLM_PROVIDER=openai`. For Claude, set `ANTHROPIC_API_KEY` and optionally `LLM_PROVIDER=claude`. `MOCK_LLM=1` continues to bypass all model calls.
-
-## Dry run vs live
-
-Submission is **dry run by default**. A real `POST /api/v1/rfqs` only goes out when both of these are true:
-
-1. `NOX_API_KEY` is set on the server, and
-2. a user clicks **Submit to Nox** and confirms the dialog. The client sends `{ payload, live: true }`.
-
-In every other case (no key, or **Create RFQ (dry run)**), `/api/submit` returns the exact request it would have sent: method, URL, headers with the key redacted to `$NOX_API_KEY`, and the body. The payload panel shows the same request as a copyable `curl`. The `Idempotency-Key` header is a SHA-256 of the body, so a retry or double-click replays the original RFQ and doesn't create a duplicate. After a live submit, the UI polls `GET /api/v1/rfqs/{id}` through `/api/rfqs/[id]` until `pricing_status` leaves `pricing`.
-
-## Extraction cache
-
-A live extraction takes one to two minutes, so the AI output is cached by a SHA-256 of the input's content. Running the same document again returns the cached extraction instantly. Normalization, validation, flags and the payload are still recomputed on every run, so date checks use today's date and catalog changes apply.
-
-- `samples/extractions/` (committed) holds extractions of the bundled demo samples, so the demo works without a connected AI provider.
-- `.cache/extractions/` (gitignored, override with `EXTRACTION_CACHE_DIR`) holds everything else, because uploads can be real customer documents.
-- A cached result says **Cached extraction from** its date and offers **Re-run live**, which calls `/api/parse?fresh=1` to skip the cache and overwrite the entry.
-- Bump `CACHE_VERSION` in `lib/extraction-cache.ts` when the prompt or extraction schema changes.
-- `MOCK_LLM=1` bypasses the cache.
-
-## Demo script (about 2 minutes)
-
-The three featured samples are pre-cached, so they work with no key. Run `npm run dev` and use them:
-
-1. **`02-aerospace-po.pdf`**: click it in the empty state (it's pre-cached, so it returns instantly). Four lines come back with AMS/QQ certs, DFARS on every line, and a tight need-by date. Hover any cell to see the verbatim quote it came from. A dot marks a medium or low-confidence value.
-2. **Flags**: errors block a line, warnings ask for confirmation (for example "T6 requested on plate; Nox stocks T651"). Click **Copy questions as email** to get a ready-to-send reply to the buyer.
-3. **Fix a cell**: change a temper or a qty. The flags, the excluded lines and the payload all recompute right away. Accept a warning to clear it.
-4. **Payload**: switch between JSON and curl, then click **Create RFQ (dry run)**. With a Nox key, **Submit to Nox** creates the real RFQ and shows Wayne's pricing status.
-5. Optional: **`06-scanned-note.png`** (handwriting, crossed-out line skipped) and **`05-rfq-out-of-catalog.pdf`** (qty 250 blocked, 17-4 PH routed to sales).
-
-## Scripts
-
-| Command | |
+| Variable | Purpose |
 |---|---|
-| `npm run dev` / `build` / `start` | Next.js |
-| `npm run typecheck` | `tsc --noEmit` |
-| `npm test` | Vitest: existing pipeline rules plus OAuth validation/refresh/revocation and streamed OpenAI extraction, input formats, and failure handling. Uses mocked provider responses; no credentials required. |
-| `npm run eval` | Runs the parse pipeline over every `samples/*` file that has `samples/expected/<name>.json`. Prints field accuracy and flag recall, and writes `eval-report.json`. Needs credentials for the selected provider. With `MOCK_LLM=1` it only proves the harness runs. |
+| `ANTHROPIC_API_KEY` | Extraction with Claude (`claude-opus-5-5`) |
+| `OPENAI_API_KEY` | Extraction with the OpenAI Responses API (model set by `OPENAI_MODEL`) |
+| `LLM_PROVIDER` | `claude`, `openai` or `chatgpt`, when more than one is configured |
+| `NOX_API_KEY` | Uses Nox's live materials catalog and submits RFQs to Nox |
+| `NOX_API_BASE_URL` | Defaults to `https://developer-api.noxmetals.co` |
+| `MOCK_LLM` | Set to `1` to return a fixed extraction, for running the app with no provider |
 
-Eval conventions follow `samples/README.md`. Lines match by ref when every ref agrees, otherwise by order. Flags are scored on `(line_ref, severity)`, and `field` is reported as a secondary soft match. A null expected compliance counts as equal to `"none"`.
+Extraction can also run on a ChatGPT plan instead of an API key; see [docs/chatgpt-sign-in.md](docs/chatgpt-sign-in.md).
 
-## Layout
+### Submitting to Nox
+
+With `NOX_API_KEY` set, **Submit to Nox** sends the RFQ after a confirmation and shows its pricing status. Without a key, the button reads **Create RFQ** and nothing is sent: the Nox API request section shows the exact request, as JSON or `curl`, that would have gone to Nox.
+
+## How it works
 
 ```
-app/page.tsx              single-page UI (input, header card, line table, flags, payload)
-app/api/parse             POST multipart file or JSON {text, filename?} → ParseResult
-app/api/submit            POST {payload, live?} → dry-run request or live 202
-app/api/samples[/name]    list and serve files in samples/
-app/api/status            model, catalog source, Nox mode (for the header pills)
-app/api/chatgpt/*          loopback sign-in, callback, account selection, disconnect
-app/api/rfqs/[id]         proxy for polling a live RFQ
-components/               UI building blocks
-hooks/useRfqEditor.ts     edits + client-side re-validation
-lib/schema.ts             Zod schema for the LLM and the shared types (ExtractedRfq, Flag, CreateRfqDto…)
-lib/extract.ts, prompt.ts Claude call and system prompt
-lib/extract-openai.ts     OpenAI Responses extraction with an API key or app OAuth token
-lib/chatgpt-auth.ts       local OAuth registrations, private storage, refresh/revocation
-lib/llm.ts               provider selection and readiness
-lib/normalize.ts          deterministic clean-up of the LLM output
-lib/validate.ts           rule flags
-lib/analyze.ts            validate + merge flags + build payload (shared by server and client)
-lib/payload.ts            ExtractedRfq → CreateRfqDto
-lib/request.ts, nox.ts    HTTP request/curl builder and the Nox client
-lib/specs.ts              AMS/QQ/ASTM callout table
-data/materials.seed.json  approximate catalog, used when there's no Nox key
-scripts/eval.ts           accuracy harness
+document ─► extract ─► normalize ─► validate ─► build payload ─► submit
 ```
 
-## Notes and limits
+| Stage | Code | What happens |
+|---|---|---|
+| Extract | `lib/extract.ts`, `lib/extract-openai.ts`, `lib/prompt.ts` | The model returns a schema-typed RFQ (Zod). Each field has a value, a confidence and a source quote. PDFs and images go to the model directly; spreadsheets are converted to text. |
+| Normalize | `lib/normalize.ts`, `lib/units.ts`, `lib/specs.ts` | Fractions, millimetres, glued tempers such as `AL6061T651` and spec callouts become catalog terms. |
+| Validate | `lib/validate.ts`, `lib/materials.ts` | Deterministic rules check the catalog and API limits. Rule flags take precedence over model flags. |
+| Build payload | `lib/payload.ts`, `lib/analyze.ts` | Produces the `CreateRfqDto`. PO number, part number, tolerance, need-by date and cert requirements go into each line's `job_detail`, since the API has no fields for them. |
+| Submit | `lib/nox.ts`, `lib/request.ts` | Sends to Nox, or returns the request when no key is set. |
 
-- The seed catalog is an approximation built from public noxmetals.co pages. The header shows which catalog is active. Following the real API docs, `Tube` is empty, since tube isn't quoted through the API.
-- The API has no need-by, PO or tolerance fields. The PO number, customer part number, cut tolerance, need-by date and the mill-cert requirement go into each line's `job_detail`. The PO number, company and date also go into `subject`.
-- Lines with blocking errors are left out of the payload, and the UI says which ones. You can still submit the clean lines.
-- `xlsx` (SheetJS 0.18.5 from npm) has a known advisory that applies to untrusted spreadsheets. That's acceptable for a demo. For production, switch to the SheetJS CDN build.
+Extractions are cached by a hash of the document (`lib/extraction-cache.ts`), because a model run takes one to two minutes. Validation always re-runs, so date checks and catalog changes stay current. **Re-run live** bypasses the cache.
+
+## Project structure
+
+```
+app/              Next.js pages and API routes (parse, submit, samples, status)
+components/       Review UI: request header, line table, flags, payload
+hooks/            Editor state and RFQ status polling
+lib/              Extraction, normalization, validation, payload and Nox client
+data/             Seed catalog and stock plate thicknesses
+samples/          Sample documents, ground truth and cached extractions
+scripts/eval.ts   Accuracy evaluation over the samples
+tests/            Unit tests
+docs/             Nox OpenAPI spec and ChatGPT sign-in guide
+```
+
+## Testing
+
+```bash
+npm test            # unit tests, no credentials needed
+npm run typecheck
+npm run eval        # field accuracy and flag recall against samples/expected (needs an AI key)
+```
+
+[samples/README.md](samples/README.md) describes each sample document and what it exercises.
+
+## Notes
+
+- Without `NOX_API_KEY`, the catalog is an approximation built from public noxmetals.co pages (`data/materials.seed.json`).
+- Stock plate thicknesses for 6061, 7075 and 7050 (`data/plate-thicknesses.json`) come from the noxmetals.co instant-quote form. The materials API doesn't expose thicknesses, so the list needs updating when stock changes.
+- The payload follows Nox's published API spec in `docs/nox-openapi.json`.
+- All companies, people and part numbers in the samples are fictional.

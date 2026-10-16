@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regenerate the binary demo samples (PDF / XLSX / CSV / PNG) in samples/.
+"""Regenerate the binary sample documents (PDF / XLSX / CSV / PNG) in samples/.
 
 Text samples (01, 03, 07, 08) are hand-written and live directly in samples/.
 

@@ -1,4 +1,14 @@
+import plateThicknesses from "@/data/plate-thicknesses.json";
 import type { Catalog, MaterialDto, ProductType } from "./schema";
+
+const STOCK_PLATE_THICKNESSES: Record<string, number[]> = Object.fromEntries(
+  Object.entries(plateThicknesses).filter((entry): entry is [string, number[]] => Array.isArray(entry[1])),
+);
+
+/** Stock plate thicknesses for an alloy, or null when we don't have a list for it. */
+export function stockPlateThicknesses(alloy: string): number[] | null {
+  return STOCK_PLATE_THICKNESSES[alloy.trim().toUpperCase()] ?? null;
+}
 
 export function findMaterial(catalog: Catalog, productType: ProductType, alloy: string): MaterialDto | null {
   const code = alloy.trim().toUpperCase();

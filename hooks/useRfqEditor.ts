@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { analyze } from "@/lib/analyze";
-import type { Catalog, ExtractedLine, ExtractedRfq, Field, ParseResult } from "@/lib/schema";
+import type { Catalog, ExtractedLine, ExtractedRfq, Field, ParseResult, ProductType, Shape } from "@/lib/schema";
 
 export type LineFieldName = {
   [K in keyof ExtractedLine]: ExtractedLine[K] extends Field<unknown> ? K : never;
@@ -44,6 +44,18 @@ export function useRfqEditor(result: ParseResult, catalog: Catalog, today: strin
         lines: rfq.lines.map((line) => (line.ref === ref ? { ...line, [field]: edited(line[field] as Field<LineValue<K>>, value) } : line)),
       }));
       markEdited(ref, field);
+    },
+
+    /** Sets product type and shape together, for the single Shape picker. */
+    setForm(ref: string, productType: ProductType | null, shape: Shape | null) {
+      setDraft((rfq) => ({
+        ...rfq,
+        lines: rfq.lines.map((line) =>
+          line.ref === ref ? { ...line, product_type: edited(line.product_type, productType), shape: edited(line.shape, shape) } : line,
+        ),
+      }));
+      markEdited(ref, "product_type");
+      markEdited(ref, "shape");
     },
 
     setHeaderField(field: HeaderFieldName, value: string | null) {

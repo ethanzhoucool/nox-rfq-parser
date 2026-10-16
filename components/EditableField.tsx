@@ -1,5 +1,6 @@
 "use client";
 
+import { CaretDown } from "@phosphor-icons/react";
 import { useState } from "react";
 import type { Field, Severity } from "@/lib/schema";
 import { ConfidenceMark, SEVERITY_STYLE, SourceQuote, Tooltip, cx } from "./ui";
@@ -10,6 +11,8 @@ type Common<T> = {
   severity?: Severity;
   label: string;
   className?: string;
+  /** Render as a bordered input box, as in the order grid on noxmetals.co. */
+  boxed?: boolean;
 };
 
 export function EditableText<T>({
@@ -18,6 +21,7 @@ export function EditableText<T>({
   severity,
   label,
   className,
+  boxed,
   format,
   parse,
   placeholder = "None",
@@ -53,7 +57,7 @@ export function EditableText<T>({
   };
 
   return (
-    <Cell field={field} edited={edited} severity={severity} className={className}>
+    <Cell field={field} edited={edited} severity={severity} className={className} boxed={boxed}>
       <input
         aria-label={label}
         value={text}
@@ -77,11 +81,12 @@ export function EditableSelect<T extends string>({
   severity,
   label,
   className,
+  boxed,
   options,
   onCommit,
 }: Common<T> & { options: readonly T[]; onCommit: (value: T | null) => void }) {
   return (
-    <Cell field={field} edited={edited} severity={severity} className={className}>
+    <Cell field={field} edited={edited} severity={severity} className={className} boxed={boxed}>
       <select
         aria-label={label}
         value={field.value ?? ""}
@@ -95,20 +100,27 @@ export function EditableSelect<T extends string>({
           </option>
         ))}
       </select>
+      {boxed && <CaretDown size={12} className="pointer-events-none shrink-0 text-fg-3" aria-hidden />}
     </Cell>
   );
 }
 
-function Cell<T>({ field, edited, severity, className, children }: Omit<Common<T>, "label"> & { children: React.ReactNode }) {
+function Cell<T>({ field, edited, severity, className, boxed, children }: Omit<Common<T>, "label"> & { children: React.ReactNode }) {
+  const flagged = severity && severity !== "info";
   return (
     <Tooltip content={<SourceQuote source={field.source} confidence={field.confidence} edited={edited} />} className={cx("block", className)}>
       <span
         className={cx(
-          "flex items-center gap-1.5 rounded-md px-1.5 py-1 transition-colors focus-within:bg-sunken focus-within:ring-1 focus-within:ring-accent hover:bg-hover",
-          severity && severity !== "info" && SEVERITY_STYLE[severity].ring,
+          "flex items-center gap-1.5 rounded-sm transition-colors",
+          boxed
+            ? cx(
+                "h-11 border bg-surface px-3 focus-within:border-accent focus-within:ring-1 focus-within:ring-accent",
+                flagged ? SEVERITY_STYLE[severity].box : "border-line-strong hover:border-fg-3",
+              )
+            : cx("px-1.5 py-1 focus-within:bg-sunken focus-within:ring-1 focus-within:ring-accent hover:bg-hover", flagged && SEVERITY_STYLE[severity].ring),
         )}
       >
-        <ConfidenceMark confidence={field.confidence} edited={edited} />
+        {!(boxed && field.value === null && !edited) && <ConfidenceMark confidence={field.confidence} edited={edited} />}
         {children}
       </span>
     </Tooltip>

@@ -8,3 +8,7 @@ eval-report.json
 __pycache__/
 .chatgpt/
 .cache/
+
+# written by next dev
+AGENTS.md
+CLAUDE.md

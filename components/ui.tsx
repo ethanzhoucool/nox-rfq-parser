@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Copy } from "@phosphor-icons/react";
-import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { Confidence, Severity } from "@/lib/schema";
 
@@ -9,30 +9,23 @@ export function cx(...classes: (string | false | null | undefined)[]): string {
   return classes.filter(Boolean).join(" ");
 }
 
-export function Panel({
-  title,
-  count,
-  actions,
-  children,
-  className,
-}: {
-  title: ReactNode;
-  count?: number;
-  actions?: ReactNode;
-  children: ReactNode;
-  className?: string;
-}) {
+/** Uppercase, letter-spaced label used for column heads and section titles, as on noxmetals.co. */
+export const LABEL = "text-[11px] font-medium uppercase tracking-[0.12em]";
+
+/** Text-and-icon action for the page toolbar. */
+export function ToolbarButton({ children, className, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <section className={cx("rounded-md border border-line bg-surface", className)}>
-      <header className="flex min-h-11 items-center justify-between gap-3 border-b border-line px-4 py-2">
-        <h2 className="flex items-center gap-2 text-sm font-semibold text-fg">
-          {title}
-          {count !== undefined && <span className="rounded-md bg-sunken px-1.5 font-mono text-xs font-medium text-fg-2">{count}</span>}
-        </h2>
-        {actions && <div className="flex items-center gap-2">{actions}</div>}
-      </header>
+    <button
+      type="button"
+      className={cx(
+        "inline-flex items-center gap-1.5 rounded-sm px-1 py-1 text-sm whitespace-nowrap text-fg-2 transition-colors hover:text-fg disabled:cursor-not-allowed disabled:opacity-40",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+        className,
+      )}
+      {...props}
+    >
       {children}
-    </section>
+    </button>
   );
 }
 
@@ -46,7 +39,7 @@ export function Button({
     <button
       type="button"
       className={cx(
-        "inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors active:translate-y-px disabled:cursor-not-allowed disabled:opacity-40",
+        "inline-flex items-center justify-center gap-1.5 rounded-sm px-3 py-1.5 text-[13px] font-medium whitespace-nowrap transition-colors active:translate-y-px disabled:cursor-not-allowed disabled:opacity-40",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
         variant === "primary" && "bg-accent text-on-accent hover:bg-accent-hover",
         variant === "secondary" && "border border-line-strong bg-surface text-fg hover:bg-hover",
@@ -91,20 +84,11 @@ export function ConfidenceMark({ confidence, edited }: { confidence: Confidence;
   );
 }
 
-export const SEVERITY_STYLE: Record<Severity, { text: string; ring: string; soft: string; label: string }> = {
-  error: { text: "text-err", ring: "ring-1 ring-err/60 bg-err/5", soft: "bg-err/10 text-err", label: "Errors" },
-  warning: { text: "text-warn", ring: "ring-1 ring-warn/60 bg-warn/5", soft: "bg-warn/10 text-warn", label: "Warnings" },
-  info: { text: "text-fg-2", ring: "", soft: "bg-sunken text-fg-2", label: "Notes" },
+export const SEVERITY_STYLE: Record<Severity, { text: string; ring: string; box: string; soft: string; label: string }> = {
+  error: { text: "text-err", ring: "ring-1 ring-err/60 bg-err/5", box: "border-err/70 bg-err/[0.04]", soft: "bg-err/10 text-err", label: "Errors" },
+  warning: { text: "text-warn", ring: "ring-1 ring-warn/60 bg-warn/5", box: "border-warn/70 bg-warn/[0.05]", soft: "bg-warn/10 text-warn", label: "Warnings" },
+  info: { text: "text-fg-2", ring: "", box: "border-line-strong", soft: "bg-sunken text-fg-2", label: "Notes" },
 };
-
-export function StatusChip({ label, value, tone = "neutral" }: { label: string; value: string; tone?: "neutral" | "accent" | "warn" }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface px-2 py-1 text-xs">
-      <span className="text-fg-3">{label}</span>
-      <span className={cx("font-medium", tone === "accent" && "text-accent", tone === "warn" && "text-warn", tone === "neutral" && "text-fg")}>{value}</span>
-    </span>
-  );
-}
 
 /** Hover tooltip rendered in a portal so it is never clipped by scrolling tables. */
 export function Tooltip({ content, children, className }: { content: ReactNode; children: ReactNode; className?: string }) {
@@ -138,7 +122,7 @@ function TooltipBubble({ position, children }: { position: { left: number; top: 
       ref={bubble}
       role="tooltip"
       style={{ left, top: position.top - 8 }}
-      className="pointer-events-none fixed z-50 max-w-sm -translate-x-1/2 -translate-y-full rounded-md border border-line-strong bg-surface px-3 py-2 text-xs leading-relaxed text-fg shadow-lg shadow-fg/10"
+      className="pointer-events-none fixed z-50 max-w-sm -translate-x-1/2 -translate-y-full rounded-sm border border-line-strong bg-surface px-3 py-2 text-xs leading-relaxed text-fg shadow-lg shadow-fg/10"
     >
       {children}
     </div>,
@@ -155,5 +139,64 @@ export function SourceQuote({ source, confidence, edited }: { source: string | n
       </div>
       {source ? <q className="block font-mono text-[11px] text-fg">{source}</q> : <span className="text-fg-3">Not found in the document</span>}
     </div>
+  );
+}
+
+/** Click-to-open panel anchored under its trigger, in a portal so scrolling tables never clip it; closes on outside click, scroll or Escape. */
+export function Popover({ trigger, label, children, align = "right" }: { trigger: ReactNode; label: string; children: ReactNode; align?: "left" | "right" }) {
+  const [position, setPosition] = useState<{ x: number; top: number } | null>(null);
+  const button = useRef<HTMLButtonElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!position) return;
+    const close = (e: Event) => {
+      if (e instanceof KeyboardEvent ? e.key === "Escape" : !panel.current?.contains(e.target as Node) && !button.current?.contains(e.target as Node))
+        setPosition(null);
+    };
+    const dismiss = () => setPosition(null);
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", close);
+    window.addEventListener("scroll", dismiss, true);
+    window.addEventListener("resize", dismiss);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("keydown", close);
+      window.removeEventListener("scroll", dismiss, true);
+      window.removeEventListener("resize", dismiss);
+    };
+  }, [position]);
+
+  const toggle = () => {
+    const rect = button.current?.getBoundingClientRect();
+    setPosition((current) => (current || !rect ? null : { x: align === "right" ? window.innerWidth - rect.right : rect.left, top: rect.bottom + 8 }));
+  };
+
+  return (
+    <>
+      <button
+        ref={button}
+        type="button"
+        aria-label={label}
+        aria-expanded={position !== null}
+        onClick={toggle}
+        className="inline-flex rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      >
+        {trigger}
+      </button>
+      {position &&
+        createPortal(
+          <div
+            ref={panel}
+            role="dialog"
+            aria-label={label}
+            style={align === "right" ? { right: position.x, top: position.top } : { left: position.x, top: position.top }}
+            className="fixed z-50 w-[22rem] rounded-sm border border-line-strong bg-surface p-1 text-left shadow-lg shadow-fg/10"
+          >
+            {children}
+          </div>,
+          document.body,
+        )}
+    </>
   );
 }
