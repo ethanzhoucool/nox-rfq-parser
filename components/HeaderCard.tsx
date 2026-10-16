@@ -53,7 +53,7 @@ export function HeaderCard({ editor }: { editor: RfqEditor }) {
       </div>
       <div className="grid grid-cols-2 gap-x-6 gap-y-3">
         {customer("company", "Company")}
-        {customer("name", "Buyer")}
+        {customer("name", "Contact")}
         {customer("email", "Email")}
         {customer("phone", "Phone")}
         {header("po_number", "PO #")}

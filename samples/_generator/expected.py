@@ -58,9 +58,7 @@ samples["02-aerospace-po"] = {
         certs=[("QQ", "AMS-QQ-A-250/12")], pn="RM-7075-T7351-0750", tol="+.125/-0"),
       L("20", "7050", "T7451", "Plate", "Plate", 4, t=2.0, w=12, l=18, compliance="dfars",
         certs=[("AMS", "AMS 4050")], pn="RM-7050-T7451-2000"),
-      L("30", "2024", "T351", "Plate", "Plate", 8, t=1.25, w=10, l=20, compliance="dfars",
-        certs=[("QQ", "AMS-QQ-A-250/4")], pn="RM-2024-T351-1250"),
-      L("40", "6061", "T651", "Plate", "Plate", 2, t=0.5, w=48, l=96, compliance="dfars",
+      L("30", "6061", "T651", "Plate", "Plate", 2, t=0.5, w=48, l=96, compliance="dfars",
         certs=[("AMS", "AMS 4027"), ("ASTM", "ASTM B209")], pn="RM-6061-T651-0500"),
     ],
   },
@@ -69,7 +67,7 @@ samples["02-aerospace-po"] = {
     F("20", "compliance", "warning", "DFARS-compliant 7050-T7451 at 2.000\" thick: confirm DFARS/country-of-melt material is actually on the shelf in this size before committing to 10/05."),
     F(None, "compliance", "info", "Order-wide note 1 makes every line DFARS 252.225-7009, not just line 20. Aluminum isn't technically a 'specialty metal' under 7009, but the clause is flowed down, so treat all lines as compliance=dfars and certify country of melt."),
   ],
-  "notes": "Clean ERP layout, but the facts are spread across the page: DFARS is stated on line 20 AND as order-wide note 1 (all four lines are dfars). MTR + C of C requirement is in the notes block. AMS-QQ-A-250/12 is the 7075 plate spec and carries no temper by itself; the temper T7351 comes from the description. AMS-QQ-A-250/4 is 2024 plate. Line 40 has two cert callouts (AMS 4027 + ASTM B209); B209 is a generic sheet/plate spec and implies no alloy. Line 10 cut tolerance +.125/-0 has no API field and must go into job_detail. Need-by 10/05 is a Monday, one business day out, so the tight-date flag should fire. Page 2 is T&C boilerplate with no line items. The DPAS rating and prime contract number are not job numbers.",
+  "notes": "Clean ERP layout, but the facts are spread across the page: DFARS is stated on line 20 AND as order-wide note 1 (all three lines are dfars). MTR + C of C requirement is in the notes block. AMS-QQ-A-250/12 is the 7075 plate spec and carries no temper by itself; the temper T7351 comes from the description. Line 30 has two cert callouts (AMS 4027 + ASTM B209); B209 is a generic sheet/plate spec and implies no alloy. Line 10 cut tolerance +.125/-0 has no API field and must go into job_detail. Need-by 10/05 is a Monday, one business day out, so the tight-date flag should fire. Page 2 is T&C boilerplate with no line items. The DPAS rating and prime contract number are not job numbers.",
 }
 
 samples["03-forwarded-thread"] = {

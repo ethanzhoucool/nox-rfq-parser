@@ -197,12 +197,7 @@ function FieldNote({ flags }: { flags: Flag[] }) {
   return (
     <Tooltip
       className="mt-1.5 block"
-      content={
-        <div className="space-y-1">
-          <p>{top.message}</p>
-          {top.suggested_question && <p className="text-fg-2">Ask: {top.suggested_question}</p>}
-        </div>
-      }
+content={top.message}
     >
       <span className={cx("line-clamp-2 text-xs leading-snug", SEVERITY_STYLE[top.severity].text)}>{top.message}</span>
       {extra > 0 && <span className="text-xs text-fg-3">+{extra} more</span>}
@@ -220,7 +215,7 @@ function LineNotes({ line, flags, onThickness }: { line: ExtractedLine; flags: F
   return (
     <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
       {top && (
-        <Tooltip content={top.suggested_question && <span>Ask: {top.suggested_question}</span>}>
+        <Tooltip content={nearest.length > 0 && top.message}>
           <span className={cx("leading-snug", SEVERITY_STYLE[top.severity].text)}>
             {nearest.length > 0 ? "Not a stock thickness" : top.message}
             {extra > 0 && <span className="text-fg-3"> +{extra} more</span>}
