@@ -96,6 +96,9 @@ function LineRow({ line, editor, excluded, each }: { line: ExtractedLine; editor
   const dims = sizeFields(line);
   const dimSeverity = worstSeverity(lineFlags.filter((f) => f.field !== null && (dims as string[]).includes(f.field)));
   const cell = "border-b border-line px-1.5 align-top";
+  const flagsFor = (fields: string[]) => lineFlags.filter((f) => f.field !== null && fields.includes(f.field));
+  // Flags on a field that has no column of its own (or no field at all) sit under the size.
+  const sizeFlags = lineFlags.filter((f) => f.field === null || !COLUMN_FIELDS.has(f.field) || (dims as string[]).includes(f.field));
 
   return (
     <tr className="group">
@@ -115,16 +118,20 @@ function LineRow({ line, editor, excluded, each }: { line: ExtractedLine; editor
         </Tooltip>
       </td>
       <td className={cx(cell, "w-[150px] py-3")}>
-        <FormSelect line={line} editor={editor} severity={worstSeverity(lineFlags.filter((f) => f.field === "product_type" || f.field === "shape"))} />
+        <FormSelect line={line} editor={editor} severity={worstSeverity(flagsFor(["product_type", "shape"]))} />
+        <FieldNote flags={flagsFor(["product_type", "shape"])} />
       </td>
       <td className={cx(cell, "w-[104px] py-3")}>
         <EditableText {...common("alloy")} format={String} parse={parseAlloy} onCommit={set("alloy")} className="font-mono" boxed />
+        <FieldNote flags={flagsFor(["alloy"])} />
       </td>
       <td className={cx(cell, "w-[104px] py-3")}>
         <EditableText {...common("temper")} format={String} parse={parseAlloy} onCommit={set("temper")} className="font-mono" boxed />
+        <FieldNote flags={flagsFor(["temper"])} />
       </td>
       <td className={cx(cell, "w-[124px] py-3")}>
         <EditableSelect {...common("compliance")} options={COMPLIANCE} onCommit={set("compliance")} className="font-mono uppercase" boxed />
+        <FieldNote flags={flagsFor(["compliance"])} />
       </td>
       <td className={cx(cell, "min-w-[250px] py-3")}>
         <div
@@ -141,13 +148,15 @@ function LineRow({ line, editor, excluded, each }: { line: ExtractedLine; editor
             </span>
           ))}
         </div>
-        <LineNotes line={line} flags={lineFlags} onThickness={set("thickness_in")} />
+        <LineNotes line={line} flags={sizeFlags} onThickness={set("thickness_in")} />
       </td>
       <td className={cx(cell, "w-[76px] py-3")}>
         <EditableText {...common("quantity")} format={String} parse={parseQuantity} onCommit={set("quantity")} align="right" className="font-mono" boxed />
+        <FieldNote flags={flagsFor(["quantity"])} />
       </td>
       <td className={cx(cell, "w-[150px] py-3")}>
         <EditableText {...common("customer_part_number")} format={String} parse={parseText} onCommit={set("customer_part_number")} placeholder="" className="font-mono" boxed />
+        <FieldNote flags={flagsFor(["customer_part_number"])} />
       </td>
       <td className={cx(cell, "w-[96px] pt-[22px] text-right font-mono text-[13px] text-fg-2")}>{each !== null ? `${formatPounds(each)} lb` : "–"}</td>
       <td className={cx(cell, "w-[120px] pt-4 text-right")}>
@@ -177,7 +186,31 @@ function LineStatus({ excluded, worst }: { excluded: boolean; worst: ReturnType<
   return <span className="text-[15px] font-medium text-ok">Ready</span>;
 }
 
-/** Certs, tolerance and the line's top flag, shown under the size like the stock-width hint on noxmetals.co. */
+/** Fields that have their own column, and so show their own flags under it. */
+const COLUMN_FIELDS = new Set(["product_type", "shape", "alloy", "temper", "compliance", "quantity", "customer_part_number"]);
+
+/** The worst flag on one column's field(s), shown right under that column's input. */
+function FieldNote({ flags }: { flags: Flag[] }) {
+  const top = flags.find((f) => f.severity === "error") ?? flags.find((f) => f.severity === "warning");
+  if (!top) return null;
+  const extra = flags.filter((f) => f.severity !== "info").length - 1;
+  return (
+    <Tooltip
+      className="mt-1.5 block"
+      content={
+        <div className="space-y-1">
+          <p>{top.message}</p>
+          {top.suggested_question && <p className="text-fg-2">Ask: {top.suggested_question}</p>}
+        </div>
+      }
+    >
+      <span className={cx("line-clamp-2 text-xs leading-snug", SEVERITY_STYLE[top.severity].text)}>{top.message}</span>
+      {extra > 0 && <span className="text-xs text-fg-3">+{extra} more</span>}
+    </Tooltip>
+  );
+}
+
+/** Certs, tolerance and the size's top flag, shown under the size like the stock-width hint on noxmetals.co. */
 function LineNotes({ line, flags, onThickness }: { line: ExtractedLine; flags: Flag[]; onThickness: (value: number) => void }) {
   const top = flags.find((f) => f.severity === "error") ?? flags.find((f) => f.severity === "warning");
   const extra = flags.filter((f) => f.severity !== "info").length - (top ? 1 : 0);
