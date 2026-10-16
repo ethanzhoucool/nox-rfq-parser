@@ -22,7 +22,7 @@ type ParseState =
   | { state: "failed"; code: string; message: string };
 
 const PROVIDER_LABEL: Record<AppStatus["provider"] | "mock", string> = {
-  mock: "Demo",
+  mock: "Mock",
   chatgpt: "ChatGPT plan",
   openai: "OpenAI API",
   claude: "Claude",

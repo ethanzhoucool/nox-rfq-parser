@@ -1,6 +1,6 @@
-# Demo samples
+# Sample documents
 
-These are messy buyer RFQs and POs addressed to Nox Metals (sales@noxmetals.co). "Today" for all of them is **Fri 2026-10-02**. Every company, person, address, part number and contract number is fictional, and the phone numbers are in the 555-01xx range.
+Realistic buyer RFQs and POs addressed to Nox Metals (sales@noxmetals.co). "Today" for all of them is **Fri 2026-10-02**. Every company, person, address, part number and contract number is fictional, and the phone numbers are in the 555-01xx range.
 
 | File | What it is | What it tests |
 |---|---|---|
@@ -14,24 +14,13 @@ These are messy buyer RFQs and POs addressed to Nox Metals (sales@noxmetals.co).
 | `08-round-bar.txt` | A round-bar RFQ with shop shorthand | `rd`/`dia`/`lg`, per-line cut tolerances (`+.06/-0`, `+/-.03`) that go to job_detail, **12 ft converted to 144"**, and 2024-T351 bar not in the catalog (only T3511 is) |
 | `09-launch-vehicle-po.pdf` | A two-page PO from a fictional launch-vehicle maker, with an original logo drawn in code | Revision A changes line 20 qty (10 to 12); DFARS on **line 40 only** (Inconel 718, a true specialty metal); 2219-T87 and 718 aren't stocked, so both route to sales; line 50 temper is "per drawing"; AS9102 FAI and export-control clauses are noise for extraction |
 
-The ground truth is in `expected/<basename>.json`. Each file has `expected` (a partial `ExtractedRfq` with plain values, not `Field` wrappers), `expected_flags` (`line_ref`, `field`, `severity`, `why`), and `notes` explaining what makes the sample hard. Both 04 files share `04-bom-export.json`, and both 06 files share `06-scanned-note.json`.
+They double as an evaluation set (`npm run eval`). The ground truth is in `expected/<basename>.json`. Each file has `expected` (a partial `ExtractedRfq` with plain values, not `Field` wrappers), `expected_flags` (`line_ref`, `field`, `severity`, `why`), and `notes` explaining what makes the sample hard. Both 04 files share `04-bom-export.json`, and both 06 files share `06-scanned-note.json`.
 
 How to score against it:
 - **Refs.** Where the document numbers its lines (02: 10–40, 04: Find #, 05: 1–4, 08: 1–3), `ref` uses the customer's numbers. Otherwise refs are `L1..Ln`. If the parser numbers lines differently, match lines by order.
 - **Rectangle bar.** It uses `height_in` + `width_in` (Nox's `LineDimensionsDto`), not `thickness_in`. Square bar uses `width_in` only.
 - **Flag fields.** Treat `field` as a soft match. One flag uses `"dimensions"` (the mm conversion in 04) and two header flags use `"lines"` and `"customer"`. Scoring flags on `(line_ref, severity)` is the robust choice.
 - **`null`** means the value is genuinely not in the document. The parser should flag it, not guess.
-
-## Demo order
-
-For a live 2-minute demo, open with the launch PO, then use these three:
-
-0. **`09-launch-vehicle-po.pdf`**: the opener. It's a space-industry PO with a revision, a nickel-alloy line under DFARS and two lines Nox doesn't stock. Watch it use qty 12 rather than the old 10, keep DFARS on line 40 only, and route 2219 and 718 to sales.
-1. **`02-aerospace-po.pdf`**: the main demo story. A real-looking PO comes in, and out come 4 lines with AMS/QQ certs, DFARS on every line, the "DFARS on 7050, confirm" warning, and a red/yellow "need-by 10/05 is tight" flag, then the dry-run payload.
-2. **`06-scanned-note.png`**: the crowd-pleaser. It reads a handwritten photo, skips the crossed-out line, and asks "5083: H116 or H321?"
-3. **`05-rfq-out-of-catalog.pdf`**: the guardrails. It blocks qty 250 (with a suggestion to split the line) and routes the 17-4 PH stainless line to sales instead of forcing it into an aluminum alloy.
-
-If there's time, `03-forwarded-thread.eml` is the best follow-up: it shows the parser understands a conversation, not just a table.
 
 ## Regenerating
 
