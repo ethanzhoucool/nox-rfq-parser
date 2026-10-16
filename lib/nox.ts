@@ -13,11 +13,11 @@ export async function fetchMaterials(): Promise<MaterialsListDto> {
   return noxGet<MaterialsListDto>("/api/v1/materials");
 }
 
-/** Dry run unless a Nox key is configured AND the caller explicitly asked to go live. */
-export async function submitRfq(payload: CreateRfqDto, { live }: { live: boolean }): Promise<SubmitResult> {
+/** Sends the RFQ when a Nox key is configured; without one, returns the request it would have sent. */
+export async function submitRfq(payload: CreateRfqDto): Promise<SubmitResult> {
   const request = await buildRfqRequest(payload, config.noxBaseUrl);
   const apiKey = config.noxKey;
-  if (!live || !apiKey) return { mode: "dry-run", request };
+  if (!apiKey) return { mode: "dry-run", request };
 
   const response = await fetch(request.url, {
     method: request.method,

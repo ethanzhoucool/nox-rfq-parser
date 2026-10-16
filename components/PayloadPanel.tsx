@@ -34,19 +34,20 @@ export function PayloadPanel({ editor, nox }: { editor: RfqEditor; nox: AppStatu
     setSubmission({ state: "idle" });
   }
 
-  const submit = async (live: boolean) => {
+  const live = nox.mode === "live";
+
+  const submit = async () => {
     if (live && !window.confirm(`Create a real RFQ at Nox with ${payload.lines.length} line(s)?`)) return;
     setSubmission({ state: "sending" });
     setSubmittedJson(json);
     try {
-      setSubmission({ state: "done", result: await postJson<SubmitResult>("/api/submit", { payload, live }) });
+      setSubmission({ state: "done", result: await postJson<SubmitResult>("/api/submit", { payload }) });
     } catch (error) {
       setSubmission({ state: "failed", message: error instanceof ApiError ? error.message : "Submit failed." });
     }
   };
 
   const empty = payload.lines.length === 0;
-  const liveEnabled = nox.mode === "live";
 
   return (
     <Panel
@@ -82,13 +83,10 @@ export function PayloadPanel({ editor, nox }: { editor: RfqEditor; nox: AppStatu
 
       <footer className="space-y-3 border-t border-line px-4 py-3">
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant={liveEnabled ? "secondary" : "primary"} disabled={empty || submission.state === "sending"} onClick={() => submit(false)}>
-            Create RFQ (dry run)
-          </Button>
-          <Tooltip content={liveEnabled ? "Sends POST /api/v1/rfqs with your Nox key." : "Set NOX_API_KEY on the server to enable live submission."}>
-            <Button variant="primary" disabled={!liveEnabled || empty || submission.state === "sending"} onClick={() => submit(true)}>
+          <Tooltip content={live ? "Sends POST /api/v1/rfqs with your Nox key." : "No NOX_API_KEY is set, so this shows the exact request without sending it."}>
+            <Button variant="primary" disabled={empty || submission.state === "sending"} onClick={submit}>
               <PaperPlaneTilt size={14} aria-hidden />
-              Submit to Nox
+              {live ? "Submit to Nox" : "Create RFQ"}
             </Button>
           </Tooltip>
           <span className="ml-auto text-xs text-fg-3">
@@ -110,7 +108,7 @@ function SubmissionStatus({ submission }: { submission: Submission }) {
   if (result.mode === "dry-run") {
     return (
       <div className="rounded-md border border-line bg-sunken px-3 py-2 text-xs text-fg-2">
-        <span className="font-semibold text-accent">Dry run.</span> Nothing was sent. The exact request is in the curl tab, with key{" "}
+        <span className="font-semibold text-accent">Not sent.</span> No Nox API key is set, so this is a dry run. The exact request is in the curl tab, with key{" "}
         <code className="font-mono">{result.request.headers["Idempotency-Key"]}</code>.
       </div>
     );

@@ -51,7 +51,9 @@ export function ChatgptConnection({ status, refresh }: { status: AppStatus | nul
           <p className="mt-1 text-xs text-fg-2">
             {connection?.connected || connection?.environmentToken
               ? "Parsing counts toward your existing ChatGPT usage limits."
-              : "Sign in and allow plan usage to parse RFQs with your eligible ChatGPT plan."}
+              : status?.llm === "missing_key"
+                ? "No AI provider is set up. Sign in with ChatGPT, or set ANTHROPIC_API_KEY or OPENAI_API_KEY. The sample documents work either way."
+                : "Sign in and allow plan usage to parse RFQs with your eligible ChatGPT plan."}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">

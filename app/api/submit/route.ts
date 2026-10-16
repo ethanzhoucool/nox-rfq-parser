@@ -8,12 +8,12 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json().catch(() => null)) as { payload?: CreateRfqDto; live?: unknown } | null;
+    const body = (await request.json().catch(() => null)) as { payload?: CreateRfqDto } | null;
     const payload = body?.payload;
     if (!payload || !Array.isArray(payload.lines) || payload.lines.length === 0) {
       throw new HttpError(400, "invalid_payload", "Payload must include at least one line.");
     }
-    return NextResponse.json(await submitRfq(payload, { live: body.live === true }));
+    return NextResponse.json(await submitRfq(payload));
   } catch (error) {
     return errorResponse(error);
   }

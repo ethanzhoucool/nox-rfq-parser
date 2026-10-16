@@ -39,6 +39,7 @@ export default function Home() {
   const [status, setStatus] = useState<AppStatus | null>(null);
   const [samples, setSamples] = useState<SampleInfo[]>([]);
   const [parse, setParse] = useState<ParseState>({ state: "idle" });
+  const [showConnection, setShowConnection] = useState(false);
 
   useEffect(() => {
     requestJson<AppStatus>("/api/status").then(setStatus).catch(() => setStatus(null));
@@ -73,13 +74,9 @@ export default function Home() {
 
   return (
     <div className="mx-auto max-w-[1600px] px-4 pb-16 md:px-6">
-      <TopBar status={status} />
-      <ChatgptConnection status={status} refresh={async () => setStatus(await requestJson<AppStatus>("/api/status"))} />
-      {status?.llm === "missing_key" && (
-        <div className="mb-5 rounded-md border border-warn/40 bg-warn/5 px-4 py-2.5 text-[13px] text-fg">
-          <strong className="font-semibold text-warn">The selected AI provider isn&apos;t connected.</strong> Connect ChatGPT above, or set an OpenAI or
-          Claude API key to enable parsing.
-        </div>
+      <TopBar status={status} onToggleConnection={() => setShowConnection((shown) => !shown)} />
+      {status && (status.llm === "missing_key" || showConnection) && (
+        <ChatgptConnection status={status} refresh={async () => setStatus(await requestJson<AppStatus>("/api/status"))} />
       )}
       <div className="grid gap-5 lg:grid-cols-[340px_minmax(0,1fr)]">
         <aside className="lg:sticky lg:top-5 lg:self-start">
@@ -102,20 +99,17 @@ function postFile(url: string, file: File): Promise<ParseResult> {
   return requestJson<ParseResult>(url, { method: "POST", body: form });
 }
 
-function TopBar({ status }: { status: AppStatus | null }) {
+function TopBar({ status, onToggleConnection }: { status: AppStatus | null; onToggleConnection: () => void }) {
   return (
     <header className="flex flex-wrap items-center justify-between gap-4 py-5">
       <div>
         <h1 className="text-base font-semibold tracking-tight text-fg">RFQ Parser</h1>
         <p className="text-[13px] text-fg-2">Buyer RFQs and POs in, validated Nox Metals API requests out.</p>
       </div>
-      {status && (
-        <div className="flex flex-wrap gap-2">
-          <StatusChip label="AI" value={PROVIDER_LABEL[status.llm === "mock" ? "mock" : status.provider]} />
-          <StatusChip label="Model" value={status.model} tone={status.llm === "missing_key" ? "warn" : "neutral"} />
-          <StatusChip label="Catalog" value={status.catalog.source === "live" ? "Live /materials" : "Seed (approx.)"} tone={status.catalog.source === "live" ? "accent" : "neutral"} />
-          <StatusChip label="Nox" value={status.nox.mode === "live" ? "Live submit" : "Dry run"} tone={status.nox.mode === "live" ? "accent" : "neutral"} />
-        </div>
+      {status && status.llm !== "missing_key" && (
+        <button type="button" onClick={onToggleConnection} title="AI provider settings" className="rounded-md transition-opacity hover:opacity-80">
+          <StatusChip label={PROVIDER_LABEL[status.llm === "mock" ? "mock" : status.provider]} value={status.model} />
+        </button>
       )}
     </header>
   );
