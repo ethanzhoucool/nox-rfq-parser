@@ -29,33 +29,6 @@ export function ToolbarButton({ children, className, ...props }: React.ButtonHTM
   );
 }
 
-export function Panel({
-  title,
-  count,
-  actions,
-  children,
-  className,
-}: {
-  title: ReactNode;
-  count?: number;
-  actions?: ReactNode;
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <section className={cx("rounded-sm border border-line bg-surface", className)}>
-      <header className="flex min-h-12 items-center justify-between gap-3 border-b border-line px-5 py-2">
-        <h2 className={cx(LABEL, "flex items-center gap-2 text-fg-2")}>
-          {title}
-          {count !== undefined && <span className="rounded-sm bg-sunken px-1.5 font-mono text-[11px] tracking-normal text-fg-2">{count}</span>}
-        </h2>
-        {actions && <div className="flex items-center gap-2">{actions}</div>}
-      </header>
-      {children}
-    </section>
-  );
-}
-
 export function Button({
   children,
   variant = "secondary",
@@ -116,15 +89,6 @@ export const SEVERITY_STYLE: Record<Severity, { text: string; ring: string; box:
   warning: { text: "text-warn", ring: "ring-1 ring-warn/60 bg-warn/5", box: "border-warn/70 bg-warn/[0.05]", soft: "bg-warn/10 text-warn", label: "Warnings" },
   info: { text: "text-fg-2", ring: "", box: "border-line-strong", soft: "bg-sunken text-fg-2", label: "Notes" },
 };
-
-export function StatusChip({ label, value, tone = "neutral" }: { label: string; value: string; tone?: "neutral" | "accent" | "warn" }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-sm border border-line bg-surface px-2 py-1 text-xs">
-      <span className="text-fg-3">{label}</span>
-      <span className={cx("font-medium", tone === "accent" && "text-accent", tone === "warn" && "text-warn", tone === "neutral" && "text-fg")}>{value}</span>
-    </span>
-  );
-}
 
 /** Hover tooltip rendered in a portal so it is never clipped by scrolling tables. */
 export function Tooltip({ content, children, className }: { content: ReactNode; children: ReactNode; className?: string }) {
