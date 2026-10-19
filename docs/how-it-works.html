@@ -1,0 +1,520 @@
+<title>Inside the RFQ Parser</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column (~68ch) with wider breakouts for the pipeline, tables and the line trace. */
+:root {
+  --bg: #eef0f2;
+  --surface: #fafbfc;
+  --sunken: #e4e7eb;
+  --line: #d3d8de;
+  --fg: #161b22;
+  --fg-2: #46505c;
+  --fg-3: #67717d;
+  --accent: #2747c9;
+  --accent-soft: #2747c91a;
+  --ai: #6b4fbb;
+  --ai-soft: #6b4fbb17;
+  --rules: #1f6b4f;
+  --rules-soft: #1f6b4f17;
+  --err: #b42318;
+  --warn: #93590a;
+  --info: #46505c;
+  --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1116; --surface: #151a21; --sunken: #1b222b; --line: #2a323d;
+    --fg: #e8ecf1; --fg-2: #aab3be; --fg-3: #8590a0;
+    --accent: #8ea4ff; --accent-soft: #8ea4ff1f;
+    --ai: #b9a4f5; --ai-soft: #b9a4f51a; --rules: #6fcf9f; --rules-soft: #6fcf9f17;
+    --err: #f4877e; --warn: #f0b44c; --info: #aab3be;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1116; --surface: #151a21; --sunken: #1b222b; --line: #2a323d;
+  --fg: #e8ecf1; --fg-2: #aab3be; --fg-3: #8590a0;
+  --accent: #8ea4ff; --accent-soft: #8ea4ff1f;
+  --ai: #b9a4f5; --ai-soft: #b9a4f51a; --rules: #6fcf9f; --rules-soft: #6fcf9f17;
+  --err: #f4877e; --warn: #f0b44c; --info: #aab3be;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: 16px/1.65 var(--body);
+  padding-inline: 20px;
+  padding-block: 0 80px;
+}
+main { max-width: 980px; margin: 0 auto; display: grid; gap: 64px; }
+.prose { max-width: 68ch; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.15; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2.1rem, 5vw, 3.2rem); font-weight: 800; letter-spacing: -0.02em; }
+h2 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.01em; }
+h3 { font-size: 1.15rem; font-weight: 700; }
+p { margin: 0; }
+section { display: grid; gap: 20px; }
+.stack { display: grid; gap: 14px; }
+code, .mono { font-family: var(--mono); font-size: 0.86em; }
+:not(pre) > code { background: var(--sunken); padding: 0.1em 0.35em; border-radius: 4px; }
+a { color: var(--accent); }
+.kicker { font: 600 0.78rem/1 var(--body); letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.lede { font-size: 1.2rem; line-height: 1.55; color: var(--fg-2); max-width: 62ch; }
+.muted { color: var(--fg-2); }
+.small { font-size: 0.875rem; }
+
+/* Header */
+header.top { max-width: 980px; margin: 0 auto; padding-block: 56px 8px; display: grid; gap: 18px; }
+.meta-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 500 0.8rem/1 var(--body); padding: 6px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); color: var(--fg-2); }
+nav.toc { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.92rem; padding-top: 6px; border-top: 1px solid var(--line); padding-block: 14px 0; }
+nav.toc a { color: var(--fg-2); text-decoration: none; }
+nav.toc a:hover, nav.toc a:focus-visible { color: var(--accent); text-decoration: underline; }
+
+/* Callout: the 30-second version */
+.tldr { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 22px 24px; display: grid; gap: 10px; }
+.tldr p { font-size: 1.08rem; }
+
+/* Pipeline */
+.pipeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); counter-reset: st; }
+.station { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 14px 16px; display: grid; gap: 6px; align-content: start; position: relative; min-width: 0; }
+.station .num { font: 500 0.75rem/1 var(--mono); color: var(--fg-3); }
+.station h3 { font-size: 1rem; }
+.station p { font-size: 0.86rem; line-height: 1.45; color: var(--fg-2); }
+.who { justify-self: start; font: 600 0.68rem/1 var(--body); letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 7px; border-radius: 4px; }
+.who.ai { background: var(--ai-soft); color: var(--ai); }
+.who.rules { background: var(--rules-soft); color: var(--rules); }
+.who.you { background: var(--accent-soft); color: var(--accent); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.85rem; color: var(--fg-2); align-items: center; }
+
+/* Principles */
+.principles { display: grid; gap: 14px; }
+.principle { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr); gap: 4px 16px; padding: 20px 0; border-top: 1px solid var(--line); }
+.principle .n { font: 800 1.6rem/1 var(--display); color: var(--accent); }
+.principle h3 { font-size: 1.25rem; }
+.principle .body { display: grid; gap: 10px; grid-column: 2; }
+.analogy { border-left: 3px solid var(--accent); padding: 2px 0 2px 14px; color: var(--fg-2); font-style: italic; }
+
+/* Split comparison */
+.split { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.panel { border-radius: 10px; padding: 18px 20px; display: grid; gap: 10px; align-content: start; border: 1px solid var(--line); background: var(--surface); }
+.panel.ai { border-top: 4px solid var(--ai); }
+.panel.rules { border-top: 4px solid var(--rules); }
+.panel ul { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; color: var(--fg-2); font-size: 0.95rem; }
+
+/* Code */
+pre { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; overflow-x: auto; font: 0.84rem/1.55 var(--mono); color: var(--fg); }
+pre .k { color: var(--accent); }
+pre .c { color: var(--fg-3); }
+pre .s { color: var(--rules); }
+.code-cap { font-size: 0.85rem; color: var(--fg-3); margin-top: -8px; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+th, td { text-align: left; padding: 10px 14px; vertical-align: top; border-bottom: 1px solid var(--line); }
+tr:last-child td { border-bottom: 0; }
+th { font: 600 0.78rem/1.3 var(--body); letter-spacing: 0.04em; text-transform: uppercase; color: var(--fg-3); background: var(--sunken); }
+td .mono { white-space: nowrap; }
+.sev { display: inline-block; font: 600 0.75rem/1 var(--body); padding: 4px 8px; border-radius: 4px; white-space: nowrap; }
+.sev.err { color: var(--err); background: color-mix(in srgb, var(--err) 12%, transparent); }
+.sev.warn { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
+.sev.info { color: var(--info); background: var(--sunken); }
+
+/* Trace */
+.trace { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.trace li { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); gap: 4px 20px; padding: 18px 0; border-top: 1px solid var(--line); }
+.trace .stage { font: 700 0.95rem/1.3 var(--display); }
+.trace .stage span { display: block; font: 400 0.8rem/1.4 var(--mono); color: var(--fg-3); margin-top: 4px; }
+.trace .what { display: grid; gap: 10px; min-width: 0; }
+@media (max-width: 640px) {
+  .trace li { grid-template-columns: minmax(0, 1fr); }
+  .principle { grid-template-columns: minmax(0, 1fr); }
+  .principle .body { grid-column: 1; }
+}
+
+/* Glossary */
+dl.gloss { display: grid; grid-template-columns: minmax(8rem, 12rem) minmax(0, 1fr); gap: 12px 24px; margin: 0; }
+dl.gloss dt { font-weight: 600; }
+dl.gloss dd { margin: 0; color: var(--fg-2); }
+@media (max-width: 560px) { dl.gloss { grid-template-columns: minmax(0, 1fr); gap: 2px; } dl.gloss dd { margin-bottom: 12px; } }
+
+.say { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px; display: grid; gap: 12px; }
+.say ol { margin: 0; padding-left: 1.2em; display: grid; gap: 8px; }
+footer { max-width: 980px; margin: 64px auto 0; color: var(--fg-3); font-size: 0.85rem; border-top: 1px solid var(--line); padding-top: 18px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<header class="top">
+  <span class="kicker">RFQ Parser for Nox Metals</span>
+  <h1>Inside the RFQ Parser</h1>
+  <p class="lede">A plain-language tour of what the app does, how a messy purchase order becomes a clean quote request, and the handful of ideas that hold it together.</p>
+  <div class="meta-row">
+    <span class="chip">Next.js + TypeScript</span>
+    <span class="chip">Claude or OpenAI for reading</span>
+    <span class="chip">About 2,000 lines of logic</span>
+    <span class="chip">83 tests</span>
+  </div>
+  <nav class="toc" aria-label="Sections">
+    <a href="#problem">The problem</a>
+    <a href="#pipeline">The pipeline</a>
+    <a href="#principles">Core principles</a>
+    <a href="#trace">One line, start to finish</a>
+    <a href="#files">Where things live</a>
+    <a href="#testing">How we know it works</a>
+    <a href="#glossary">Glossary</a>
+    <a href="#pitch">Explaining it in 30 seconds</a>
+  </nav>
+</header>
+
+<main>
+
+  <section class="tldr" aria-label="Short version">
+    <span class="kicker">The short version</span>
+    <p>A buyer sends Nox a purchase order as a PDF, a photo, a spreadsheet or an email. The app has an AI <strong>read</strong> it and fill in a strict form (alloy, temper, size, quantity, certs). Then plain code <strong>checks</strong> that form against Nox's catalog and API rules, flags anything missing or risky, and builds the exact request Nox's quoting system accepts. A person reviews, fixes what's flagged, and sends it.</p>
+  </section>
+
+  <section id="problem">
+    <div class="prose stack">
+      <span class="kicker">Why it exists</span>
+      <h2>The problem</h2>
+      <p>Nox sells cut-to-size metal (mostly aluminum plate and bar) and promises instant quotes. Their website has a clean quote form, and they have a public API, <code>POST /api/v1/rfqs</code>, that prices a request automatically through their internal quoting engine, Wayne.</p>
+      <p>But a lot of real orders don't arrive through that form. An aerospace buyer emails a two-page PDF purchase order. A tool-and-die shop sends a photo of a handwritten note. An engineer exports a spreadsheet with one row in millimetres. Today, a person at Nox reads each one and retypes it into the system.</p>
+      <p>That retyping is slow, and it's where mistakes happen: the wrong temper, a missed DFARS requirement, a quantity that changed in the third email of a thread. This app does the reading and the checking, and leaves a person to make the judgment calls.</p>
+    </div>
+  </section>
+
+  <section id="pipeline">
+    <div class="prose stack">
+      <span class="kicker">The big picture</span>
+      <h2>The pipeline</h2>
+      <p>Every document goes through the same six stations, in order. It's a small assembly line: each station does one job and hands its result to the next. Only one station uses AI.</p>
+    </div>
+    <ol class="pipeline">
+      <li class="station">
+        <span class="num">1</span>
+        <h3>Read the file</h3>
+        <p>Figure out what was uploaded. PDFs and photos go to the AI as-is. Spreadsheets become plain text.</p>
+        <span class="who rules">Code</span>
+      </li>
+      <li class="station">
+        <span class="num">2</span>
+        <h3>Extract</h3>
+        <p>The AI reads the document and fills in a strict form, with a quote and a confidence level for every value.</p>
+        <span class="who ai">AI</span>
+      </li>
+      <li class="station">
+        <span class="num">3</span>
+        <h3>Normalize</h3>
+        <p>Tidy the answers: split "7075-T7351" into alloy and temper, convert mm to inches, map spec numbers to alloys.</p>
+        <span class="who rules">Code</span>
+      </li>
+      <li class="station">
+        <span class="num">4</span>
+        <h3>Validate</h3>
+        <p>Check every line against Nox's catalog and API rules. Anything wrong or unclear becomes a flag.</p>
+        <span class="who rules">Code</span>
+      </li>
+      <li class="station">
+        <span class="num">5</span>
+        <h3>Build the request</h3>
+        <p>Turn the clean lines into the exact JSON Nox's API expects. Lines with errors are held back.</p>
+        <span class="who rules">Code</span>
+      </li>
+      <li class="station">
+        <span class="num">6</span>
+        <h3>Review and send</h3>
+        <p>A person checks the flags, edits cells, emails questions to the buyer, then sends (or dry-runs) the request.</p>
+        <span class="who you">You</span>
+      </li>
+    </ol>
+    <div class="legend">
+      <span class="who ai">AI</span> uses a language model
+      <span class="who rules">Code</span> ordinary, predictable code
+      <span class="who you">You</span> a person decides
+    </div>
+  </section>
+
+  <section id="principles">
+    <div class="prose stack">
+      <span class="kicker">What holds it together</span>
+      <h2>Core principles</h2>
+      <p>If you remember nothing else about the codebase, remember these five ideas. Almost every design decision follows from one of them.</p>
+    </div>
+
+    <div class="principles">
+      <article class="principle">
+        <span class="n">1</span>
+        <h3>The AI reads. Code decides.</h3>
+        <div class="body">
+          <p>Language models are excellent at reading messy documents: handwriting, odd layouts, "actually make that 15" buried in a reply. They're less reliable at following business rules exactly, every time. So the app splits the work. The AI's only job is to report what the document says. Whether that's acceptable to Nox is decided by plain code that behaves the same way on every run and can be tested.</p>
+          <p class="analogy">Think of the AI as a sharp new hire who reads the fax and fills out the order form, and the rules as the supervisor's checklist that every form must pass before it goes to the shop floor.</p>
+          <div class="split">
+            <div class="panel ai">
+              <h3>The AI does</h3>
+              <ul>
+                <li>Find the line items, wherever they are on the page</li>
+                <li>Read handwriting and skip crossed-out lines</li>
+                <li>Notice a quantity that changed in a later revision</li>
+                <li>Suggest questions a buyer would want answered</li>
+              </ul>
+            </div>
+            <div class="panel rules">
+              <h3>The code does</h3>
+              <ul>
+                <li>Check alloy and temper against Nox's catalog</li>
+                <li>Enforce API limits (quantity 1 to 200, inches only)</li>
+                <li>Decide what blocks a line and what's just a warning</li>
+                <li>Build the request in Nox's exact format</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="principle">
+        <span class="n">2</span>
+        <h3>Every value comes with a receipt</h3>
+        <div class="body">
+          <p>The AI doesn't just say "alloy is 7075". For every field it returns three things: the value, how confident it is, and the exact text it read the value from. In the app, hovering any cell shows that quote, so a reviewer can verify it in a second instead of hunting through the PDF.</p>
+<pre><span class="c">// what the AI returns for one field (real output, Corvane PO line 20)</span>
+<span class="k">"quantity"</span>: {
+  <span class="k">"value"</span>: 12,
+  <span class="k">"confidence"</span>: <span class="s">"high"</span>,
+  <span class="k">"source"</span>: <span class="s">"LINE 20 QTY CHANGED FROM 10 TO 12."</span>
+}</pre>
+          <p class="code-cap">The line itself says "QTY WAS 10". The AI found the revision note elsewhere on the page and quoted it as its source for 12.</p>
+        </div>
+      </article>
+
+      <article class="principle">
+        <span class="n">3</span>
+        <h3>Never guess silently</h3>
+        <div class="body">
+          <p>When something is missing, ambiguous or risky, the app says so with a flag instead of quietly picking an answer. Each flag has a severity, a plain-English message, and usually a ready-made question for the buyer. One button turns all the open questions into an email.</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Severity</th><th>What it means</th><th>Real example (Corvane PO)</th></tr></thead>
+              <tbody>
+                <tr><td><span class="sev err">Error</span></td><td>This line can't be quoted as-is. It's left out of the request until fixed.</td><td>Line 10: "2219 plate isn't in Nox's catalog; not stocked, route to sales."</td></tr>
+                <tr><td><span class="sev warn">Warning</span></td><td>Probably fine, but a person should confirm before sending.</td><td>Line 50: "Temper not specified; Nox stocks 7050 plate only as T7451." Suggested question: "OK to quote 7050-T7451?"</td></tr>
+                <tr><td><span class="sev info">Note</span></td><td>Useful context, nothing to fix.</td><td>Line 20: "Revision A changes line 20 from 10 to 12 pieces; 12 pieces extracted."</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Flags come from both sides. The rules raise the hard ones (not in catalog, quantity over 200, date too tight). The AI raises the judgment calls a person would notice, like quality clauses that are referenced but not attached.</p>
+        </div>
+      </article>
+
+      <article class="principle">
+        <span class="n">4</span>
+        <h3>Speak Nox's language exactly</h3>
+        <div class="body">
+          <p>The output isn't a summary. It's the exact request Nox's real API accepts, built from their published OpenAPI spec. That spec has strict rules, and the app follows all of them:</p>
+          <ul class="muted">
+            <li><code>alloy</code> is the bare code ("7075") and <code>temper</code> is a separate field ("T7351").</li>
+            <li>Both must appear in Nox's materials list for that form (plate or bar). Tube isn't quoted at all.</li>
+            <li>Dimensions are decimal inches. Quantity is 1 to 200 per line, and an RFQ has 1 to 100 lines.</li>
+            <li>Compliance is one of <code>none</code>, <code>dfars</code> or <code>domestic</code>. Certifications are a family (AMS, QQ, ASME, ASTM) plus a designation.</li>
+            <li>The API has no field for need-by date, PO number or cut tolerance, so those go into each line's free-text <code>job_detail</code>.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="principle">
+        <span class="n">5</span>
+        <h3>Safe by default</h3>
+        <div class="body">
+          <p>Creating an RFQ at Nox is a real action at a real company, so nothing is sent unless three things are all true: a Nox API key is configured, a person clicks <strong>Submit to Nox</strong>, and they confirm. Otherwise the app does a <em>dry run</em>: it shows the exact request it would send, as JSON and as a copyable <code>curl</code> command.</p>
+          <p>Every live request also carries an <code>Idempotency-Key</code>, a fingerprint of its contents. If someone double-clicks or a retry happens, Nox recognizes the same request and doesn't create a duplicate.</p>
+          <p>The same thinking covers data. Uploaded documents can be real customer POs, so they're never logged and never committed to git. Only the fictional sample documents are.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section id="trace">
+    <div class="prose stack">
+      <span class="kicker">Worked example</span>
+      <h2>One line, start to finish</h2>
+      <p>Here's line 20 of the sample Corvane Launch Systems PO (a fictional launch-vehicle company) at each station. Everything below is real output from the app.</p>
+    </div>
+    <ol class="trace">
+      <li>
+        <div class="stage">1. In the PDF<span>samples/09-launch-vehicle-po.pdf</span></div>
+        <div class="what">
+          <p>A row in the PO's line table, plus a revision note further down the page.</p>
+<pre>20  MS-7075-T7351-1500  PLATE, AL 7075-T7351
+                        1.500 X 12.00 X 24.00 IN
+                        SPEC: AMS 4078
+                        SAW CUT TOL +.060/-0
+                        REV A: QTY WAS 10        12  EA  10/16/2026
+
+NOTES  1. REVISION A (10/01/2026): LINE 20 QTY CHANGED FROM 10 TO 12.</pre>
+        </div>
+      </li>
+      <li>
+        <div class="stage">2. Extract<span>lib/extract-openai.ts</span></div>
+        <div class="what">
+          <p>The AI fills in the form. Each field gets a value, a confidence and a source quote.</p>
+<pre><span class="k">alloy</span>       7075        high    <span class="c">"PLATE, AL 7075-T7351"</span>
+<span class="k">temper</span>      T7351       high    <span class="c">"PLATE, AL 7075-T7351"</span>
+<span class="k">thickness</span>   1.5         medium  <span class="c">"1.500 X 12.00 X 24.00 IN"</span>
+<span class="k">quantity</span>    12          high    <span class="c">"LINE 20 QTY CHANGED FROM 10 TO 12."</span>
+<span class="k">certs</span>       AMS 4078
+<span class="k">tolerance</span>   +.060/-0</pre>
+        </div>
+      </li>
+      <li>
+        <div class="stage">3. Normalize<span>lib/normalize.ts</span></div>
+        <div class="what">
+          <p>Six small cleanup steps run on every line: split a temper glued onto the alloy, fill gaps from spec callouts (AMS 4078 means 7075-T7351 plate), infer DFARS or domestic requirements from the text, convert millimetres, put the smallest plate dimension in thickness, and map a requested temper to the one Nox stocks (T6 on plate becomes T651, with a warning).</p>
+          <p>This line was already clean, so nothing changed. The DFARS step left it alone because the PO limits DFARS to line 40.</p>
+        </div>
+      </li>
+      <li>
+        <div class="stage">4. Validate<span>lib/validate.ts</span></div>
+        <div class="what">
+          <p>The rules check it: 7075-T7351 is in the plate catalog, all three plate dimensions are present, quantity 12 is between 1 and 200, need-by 10/16 isn't tight. No errors. The only flag on this line is the AI's note about the revision.</p>
+        </div>
+      </li>
+      <li>
+        <div class="stage">5. Build the request<span>lib/payload.ts</span></div>
+        <div class="what">
+          <p>The line becomes one entry in the body of <code>POST /api/v1/rfqs</code>. Things the API has no field for go into <code>job_detail</code>.</p>
+<pre>{
+  <span class="k">"ref"</span>: <span class="s">"20"</span>,
+  <span class="k">"alloy"</span>: <span class="s">"7075"</span>,
+  <span class="k">"temper"</span>: <span class="s">"T7351"</span>,
+  <span class="k">"product_type"</span>: <span class="s">"Plate"</span>,  <span class="k">"shape"</span>: <span class="s">"Plate"</span>,
+  <span class="k">"thickness"</span>: 1.5,  <span class="k">"width"</span>: 12,  <span class="k">"length"</span>: 24,
+  <span class="k">"requested_quantity"</span>: 12,
+  <span class="k">"certifications"</span>: [{ <span class="k">"family"</span>: <span class="s">"AMS"</span>, <span class="k">"designation"</span>: <span class="s">"AMS 4078"</span> }],
+  <span class="k">"job_detail"</span>: <span class="s">"PO CLS-PO-26-03318; Cust P/N MS-7075-T7351-1500;
+                 Cut tol +.060/-0; Need by 2026-10-16; Mill certs (MTR) required; ..."</span>
+}</pre>
+          <p>Lines 10 (2219 aluminum) and 40 (Inconel 718) have errors, so they're held back. Lines 20, 30 and 50 go in the request.</p>
+        </div>
+      </li>
+      <li>
+        <div class="stage">6. Review and send<span>app/page.tsx</span></div>
+        <div class="what">
+          <p>In the app, the reviewer sees the line in the table with no marks (high confidence, no problems), confirms the line 50 temper question, copies the questions as an email to the buyer, and clicks <strong>Create RFQ (dry run)</strong> or, with a key, <strong>Submit to Nox</strong>. Editing any cell reruns stations 4 and 5 instantly in the browser, so flags and the request update as you type.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section id="ai">
+    <div class="prose stack">
+      <span class="kicker">Station 2, up close</span>
+      <h2>How the AI part works</h2>
+      <p>The app sends the document to a language model along with instructions (<code>lib/prompt.ts</code>) and a <strong>schema</strong>: a precise description of the form it must fill in. This uses a feature called <em>structured output</em>. The model can only reply with JSON that matches the schema, so the app never has to pick values out of a paragraph of prose.</p>
+      <p>The instructions carry metal-buyer knowledge: spec numbers and the alloys they imply, what "MTR" or "C of C" means, how to read "1/2 x 12 x 24", that a revised quantity beats the original, and to put a flag on anything it isn't sure of instead of guessing. They also include Nox's current materials list and today's date, so "need by thurs" resolves to a real date.</p>
+      <p>Three AI providers plug into the same slot. All of them get the same instructions and must fill in the same schema, so everything after station 2 doesn't know or care which one was used:</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Provider</th><th>How you connect</th><th>Who pays</th></tr></thead>
+        <tbody>
+          <tr><td>Claude (Anthropic)</td><td><code>ANTHROPIC_API_KEY</code> in <code>.env.local</code></td><td>Anthropic API usage</td></tr>
+          <tr><td>OpenAI API</td><td><code>OPENAI_API_KEY</code> in <code>.env.local</code></td><td>OpenAI Platform usage</td></tr>
+          <tr><td>Your ChatGPT plan</td><td><strong>Continue with ChatGPT</strong> button (sign-in on OpenAI's own page)</td><td>Counts toward your ChatGPT plan limits</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="prose stack">
+      <h3>The cache: why the demo is instant</h3>
+      <p>A live read of a two-page PO takes one to two and a half minutes. Reading the same file always gives the same answer, so the app saves the AI's output keyed by a <strong>fingerprint</strong> of the file (a SHA-256 hash: a short code that changes completely if even one byte of the file changes). The next time the same file comes in, station 2 is skipped and the answer comes back in milliseconds.</p>
+      <p>Only the AI's reading is cached. Stations 3 to 5 still run every time, so date checks use today's date and catalog changes apply. Cached results are labelled as cached and have a <strong>Re-run live</strong> button. The four featured samples ship with their cached readings, so the demo works without any AI connected. Your own uploads are cached on your machine only.</p>
+    </div>
+  </section>
+
+  <section id="files">
+    <div class="prose stack">
+      <span class="kicker">Map of the code</span>
+      <h2>Where things live</h2>
+      <p>The logic sits in <code>lib/</code>, the screens in <code>app/</code> and <code>components/</code>. Each file does one job, which makes them easy to test on their own.</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Station</th><th>File</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><span class="mono">lib/input.ts</span></td><td>Turns an upload into one of three shapes: PDF, image or text. Spreadsheets become CSV text.</td></tr>
+          <tr><td>2</td><td><span class="mono">lib/extract.ts</span><br><span class="mono">lib/extract-openai.ts</span></td><td>Calls Claude, or OpenAI and the ChatGPT plan, with the prompt and schema. Handles refusals, timeouts and usage limits.</td></tr>
+          <tr><td>2</td><td><span class="mono">lib/prompt.ts</span><br><span class="mono">lib/schema.ts</span></td><td>The instructions and the form (schema) the AI fills in.</td></tr>
+          <tr><td>2</td><td><span class="mono">lib/extraction-cache.ts</span></td><td>Saves and looks up AI readings by file fingerprint.</td></tr>
+          <tr><td>3</td><td><span class="mono">lib/normalize.ts</span><br><span class="mono">lib/specs.ts</span>, <span class="mono">lib/units.ts</span></td><td>Cleanup steps, the spec-number table (AMS 4027 means 6061-T651), unit conversion.</td></tr>
+          <tr><td>4</td><td><span class="mono">lib/validate.ts</span></td><td>The rulebook: missing fields, not stocked, quantity out of range, tight dates, low confidence, unusual plate thickness.</td></tr>
+          <tr><td>5</td><td><span class="mono">lib/payload.ts</span><br><span class="mono">lib/analyze.ts</span></td><td>Builds the Nox request. Holds back lines with errors.</td></tr>
+          <tr><td>All</td><td><span class="mono">lib/parse.ts</span></td><td>The conductor: runs stations 1 to 5 in order for <code>/api/parse</code>.</td></tr>
+          <tr><td>6</td><td><span class="mono">lib/nox.ts</span><br><span class="mono">app/api/submit/route.ts</span></td><td>Talks to Nox's API: dry run by default, live only with a key and an explicit click.</td></tr>
+          <tr><td>6</td><td><span class="mono">app/page.tsx</span>, <span class="mono">components/</span></td><td>The screen: upload panel, request header, line table, flags, request preview.</td></tr>
+          <tr><td>Data</td><td><span class="mono">docs/nox-openapi.json</span></td><td>Nox's real API spec, downloaded from their public docs. The source of truth for the request format.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="testing">
+    <div class="prose stack">
+      <span class="kicker">Proof</span>
+      <h2>How we know it works</h2>
+      <p>There are two kinds of checks, matching the AI/code split.</p>
+      <p><strong>Unit tests (83 of them)</strong> cover the code side: unit conversions, spec lookups, every validation rule, the request builder, the cache, the ChatGPT sign-in flow and the AI response handling. They use fake AI responses, so they run in under a second with no keys and give the same result every time.</p>
+      <p><strong>Samples with answer keys</strong> cover the AI side. There are nine messy documents (an email, a forwarded thread, a spreadsheet, a handwritten note, several PDFs), each with a hand-written answer key in <code>samples/expected/</code>. <code>npm run eval</code> runs them all and scores how many fields match and how many expected flags were raised.</p>
+      <p>The samples are built to contain traps. The Corvane PO limits DFARS to line 40 only. On its first run, the app put DFARS on all five lines. The answer key caught it, and the fix went into both the prompt and the normalizer. That's the loop: write a hard case, see it fail, fix the rule, keep the case as a test.</p>
+    </div>
+  </section>
+
+  <section id="glossary">
+    <div class="prose stack">
+      <span class="kicker">Words you'll hear</span>
+      <h2>Glossary</h2>
+    </div>
+    <dl class="gloss">
+      <dt>RFQ</dt><dd>Request for quote. "What would this cost and when can you ship it?"</dd>
+      <dt>PO</dt><dd>Purchase order. A buyer's formal order, usually with terms, quality clauses and a need-by date.</dd>
+      <dt>Alloy</dt><dd>The metal's recipe, like 6061 or 7075 aluminum, or 718 nickel alloy (Inconel).</dd>
+      <dt>Temper</dt><dd>How the metal was heat-treated and stress-relieved, like T651 or T7351. Same alloy, different temper, different strength. Nox stocks specific tempers per alloy and form.</dd>
+      <dt>Plate / bar</dt><dd>The form of the stock. Plate is flat (thickness, width, length). Bar can be round (diameter, length), square or rectangular.</dd>
+      <dt>Spec callout</dt><dd>A standard the material must meet, like AMS 4078 or AMS-QQ-A-250/12. Many imply an alloy and temper on their own.</dd>
+      <dt>DFARS</dt><dd>U.S. defense rules. Clause 252.225-7009 covers "specialty metals" like nickel alloys and titanium, which must be melted in approved countries. Buyers often apply it to aluminum orders too.</dd>
+      <dt>Mill cert / MTR</dt><dd>The test report from the mill that made the metal, proving its chemistry and strength. Aerospace buyers require one with every shipment.</dd>
+      <dt>Cut tolerance</dt><dd>How far off the saw cut may be, like +.125/-0 (up to an eighth of an inch over, never under).</dd>
+      <dt>LLM</dt><dd>Large language model: the AI (Claude or GPT) that reads the document.</dd>
+      <dt>Schema / structured output</dt><dd>The exact form the AI must fill in, and the feature that forces it to reply in that form.</dd>
+      <dt>Payload</dt><dd>The body of the request sent to Nox's API.</dd>
+      <dt>Dry run</dt><dd>Showing exactly what would be sent, without sending it.</dd>
+      <dt>Idempotency key</dt><dd>A fingerprint on a request so that sending it twice doesn't create two RFQs.</dd>
+      <dt>Hash</dt><dd>A short fingerprint computed from a file's contents. Same file, same hash. Any change, completely different hash.</dd>
+    </dl>
+  </section>
+
+  <section id="pitch">
+    <div class="prose stack">
+      <span class="kicker">For the interview</span>
+      <h2>Explaining it in 30 seconds</h2>
+    </div>
+    <div class="say">
+      <ol>
+        <li><strong>The gap:</strong> your instant quote form only helps buyers who use it. Emailed POs, photos and spreadsheets still get retyped by hand.</li>
+        <li><strong>What it does:</strong> an AI reads the document and fills in a strict form. Every value comes with the text it was read from.</li>
+        <li><strong>Why it's safe:</strong> the AI never decides anything. Plain code checks every line against your catalog and API rules, and flags what a person needs to confirm.</li>
+        <li><strong>What comes out:</strong> the exact <code>POST /api/v1/rfqs</code> request your API accepts, ready to price through Wayne. Dry run by default.</li>
+        <li><strong>The ask:</strong> send me a few redacted RFQs you actually receive, and I'll run them.</li>
+      </ol>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Written for the RFQ Parser repository (ethanzhoucool/nox-rfq-parser). All companies in the samples are fictional. Nox Metals' API details come from their public OpenAPI spec.
+</footer>
