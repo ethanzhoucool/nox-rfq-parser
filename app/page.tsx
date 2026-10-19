@@ -26,6 +26,7 @@ const PROVIDER_LABEL: Record<AppStatus["provider"] | "mock", string> = {
   chatgpt: "ChatGPT plan",
   openai: "OpenAI API",
   claude: "Claude",
+  "claude-code": "Claude Code",
 };
 
 const FEATURED_SAMPLES: Record<string, string> = {
@@ -84,7 +85,7 @@ export default function Home() {
     <>
       <TopBar status={status} onToggleConnection={() => setShowConnection((shown) => !shown)} />
       <div className="mx-auto max-w-[1400px] px-4 pb-20 md:px-8">
-        {status && (status.llm === "missing_key" || showConnection) && (
+        {status && showConnection && (
           <div className="pt-6">
             <ChatgptConnection status={status} refresh={async () => setStatus(await requestJson<AppStatus>("/api/status"))} />
           </div>

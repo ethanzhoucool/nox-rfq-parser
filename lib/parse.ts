@@ -3,6 +3,7 @@ import { getCatalog } from "./catalog";
 import { MODEL, config } from "./config";
 import { todayIso } from "./dates";
 import { extractWithClaude, type ExtractionRun } from "./extract";
+import { extractWithClaudeCode } from "./extract-claude-code";
 import { extractWithOpenAI } from "./extract-openai";
 import { cacheKey, readCachedExtraction, writeCachedExtraction, type CachedExtraction } from "./extraction-cache";
 import { fromLlm } from "./flags";
@@ -48,5 +49,6 @@ export async function parseRfq(input: RfqInput, { fresh = false }: { fresh?: boo
 
 async function extractLive(input: RfqInput, catalog: Catalog, today: string): Promise<ExtractionRun> {
   const { provider } = await llmSettings();
+  if (provider === "claude-code") return extractWithClaudeCode(input, catalog, today);
   return provider === "claude" ? extractWithClaude(input, catalog, today) : extractWithOpenAI(input, catalog, today, provider === "chatgpt");
 }
