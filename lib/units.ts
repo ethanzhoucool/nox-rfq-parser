@@ -16,7 +16,8 @@ export function parseMeasurement(text: string): Measurement | null {
     .trim();
 
   const value = parseNumber(body);
-  if (value === null || value <= 0) return null;
+  // "1/0" parses to Infinity and "0/0" to NaN.
+  if (value === null || !Number.isFinite(value) || value <= 0) return null;
   return { inches: fromMm ? roundInches(value / MM_PER_INCH) : value, fromMm };
 }
 
@@ -26,6 +27,19 @@ function parseNumber(body: string): number | null {
   const fraction = FRACTION.exec(body);
   if (fraction) return Number(fraction[1]) / Number(fraction[2]);
   return DECIMAL.test(body) ? Number(body) : null;
+}
+
+const QUANTITY = /^(?:qty\.?:?\s*)?(\d{1,3}(?:,\d{3})+|\d+)(\.\d+)?\s*(?:pcs?\.?|pieces?|ea\.?|each)?$/i;
+
+/**
+ * Parses a piece count typed into the editor: "10", "1,200", "12 pcs", "qty 5". Anything else, such as
+ * "1-2", "10 x 2" or "1,5", is rejected rather than having its digits run together into 12, 102 or 15.
+ */
+export function parseQuantity(text: string): number | null {
+  const match = QUANTITY.exec(text.trim());
+  if (!match) return null;
+  const value = Number(match[1].replace(/,/g, "") + (match[2] ?? ""));
+  return value > 0 ? value : null;
 }
 
 export function roundInches(value: number): number {
