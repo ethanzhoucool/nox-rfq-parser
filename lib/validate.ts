@@ -1,7 +1,8 @@
 import { addBusinessDays, isIsoDate } from "./dates";
 import { ruleFlag } from "./flags";
 import { findMaterial, stockPlateThicknesses, stocksTemper } from "./materials";
-import type { Catalog, ExtractedLine, ExtractedRfq, Field, Flag, MaterialDto } from "./schema";
+import { MAX_CERTIFICATIONS } from "./payload";
+import type { Catalog, DimensionField, ExtractedLine, ExtractedRfq, Field, Flag, MaterialDto } from "./schema";
 import { DIMENSION_LABELS, describeForm, effectiveShape, requiredDimensions } from "./shapes";
 import { capitalize } from "./text";
 
@@ -9,6 +10,8 @@ export const MAX_QUANTITY = 200;
 export const MAX_LINES = 100;
 const PLATE_THICKNESS_RANGE = { min: 0.125, max: 6 };
 const MIN_LEAD_BUSINESS_DAYS = 2;
+
+const DIMENSION_NAMES = Object.keys(DIMENSION_LABELS) as DimensionField[];
 
 const HEADER_FIELD_LABELS = {
   po_number: "PO number",
@@ -61,7 +64,17 @@ function validateHeader(rfq: ExtractedRfq, today: string): Flag[] {
   }
 
   const date = rfq.required_date.value;
-  if (date && !isIsoDate(date)) {
+  if (date && isIsoDate(date) && date < today) {
+    flags.push(
+      ruleFlag("date-past", {
+        severity: "warning",
+        line_ref: null,
+        field: "required_date",
+        message: `Need-by ${date} has already passed. Check the date.`,
+        suggested_question: `The need-by date reads ${date}, which has passed. What date do you need the material on your dock?`,
+      }),
+    );
+  } else if (date && !isIsoDate(date)) {
     flags.push(
       ruleFlag("date-unparsed", {
         severity: "warning",
@@ -130,6 +143,18 @@ function validateLine(line: ExtractedLine, catalog: Catalog): Flag[] {
   if (alloy && productType) {
     const material = findMaterial(catalog, productType, alloy);
     flags.push(...(material ? validateTemper(line, material) : notStocked(line)));
+  }
+
+  if (line.certifications.length > MAX_CERTIFICATIONS) {
+    const overflow = line.certifications.slice(MAX_CERTIFICATIONS).map((cert) => cert.designation);
+    flags.push(
+      ruleFlag("too-many-certifications", {
+        severity: "warning",
+        line_ref: ref,
+        field: "certifications",
+        message: `${line.certifications.length} spec callouts; the API takes ${MAX_CERTIFICATIONS} per line, so ${overflow.join(", ")} go in the job detail instead. Confirm.`,
+      }),
+    );
   }
 
   for (const [name, label] of Object.entries(LINE_FIELD_LABELS)) {
@@ -207,7 +232,38 @@ function validateDimensions(line: ExtractedLine): Flag[] {
       }),
     );
 
+  const notPositive = required.filter((name) => {
+    const value = line[name].value;
+    return value !== null && !(value > 0 && Number.isFinite(value));
+  });
+  for (const name of notPositive) {
+    flags.push(
+      ruleFlag("range", {
+        severity: "error",
+        line_ref: line.ref,
+        field: name,
+        message: `${capitalize(DIMENSION_LABELS[name])} ${line[name].value}" isn't a size; it must be greater than zero.`,
+        suggested_question: `Line ${line.ref}: what ${DIMENSION_LABELS[name]} do you need on the ${form}?`,
+      }),
+    );
+  }
+
+  // The payload only carries the dimensions the form uses, so anything else would vanish without a word.
+  for (const name of DIMENSION_NAMES.filter((name) => !required.includes(name) && line[name].value !== null)) {
+    const label = DIMENSION_LABELS[name];
+    flags.push(
+      ruleFlag("unused-dimension", {
+        severity: "warning",
+        line_ref: line.ref,
+        field: name,
+        message: `${capitalize(label)} ${line[name].value}" doesn't apply to ${form} and won't be sent to Nox. Check the form and size.`,
+        suggested_question: `Line ${line.ref}: you gave a ${label} of ${line[name].value}", which a ${form} doesn't have. Can you confirm the form and size?`,
+      }),
+    );
+  }
+
   const thickness = line.thickness_in.value;
+  if (notPositive.includes("thickness_in")) return flags;
   if (productType === "Plate" && thickness !== null && (thickness < PLATE_THICKNESS_RANGE.min || thickness > PLATE_THICKNESS_RANGE.max)) {
     flags.push(
       ruleFlag("unusual-thickness", {

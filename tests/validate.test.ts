@@ -69,6 +69,34 @@ describe("validate", () => {
     expect(flagsFor(line({ alloy: known("7075"), thickness_in: known(0.75) }))).toEqual([]);
   });
 
+  it("errors on a dimension that isn't greater than zero", () => {
+    const [flag] = flagsFor(line({ width_in: known(0) }));
+    expect(flag).toMatchObject({ severity: "error", field: "width_in" });
+    expect(flag.message).toContain('Width 0" isn\'t a size');
+    expect(summary(flagsFor(line({ thickness_in: known(-0.5) })))).toEqual(["error:L1:thickness_in"]);
+  });
+
+  it("warns about a dimension the form doesn't use, since the payload drops it", () => {
+    const roundBar = line({
+      product_type: known("Bar"),
+      shape: known("Round"),
+      temper: known("T6511"),
+      thickness_in: unknown(),
+      width_in: known(2),
+      diameter_in: known(2.5),
+    });
+    const flags = flagsFor(roundBar);
+    expect(summary(flags)).toEqual(["warning:L1:width_in"]);
+    expect(flags[0].message).toBe('Width 2" doesn\'t apply to round bar and won\'t be sent to Nox. Check the form and size.');
+  });
+
+  it("warns when a line has more spec callouts than the API accepts", () => {
+    const certifications = Array.from({ length: 12 }, (_, i) => ({ family: "AMS" as const, designation: `AMS ${4000 + i}`, source: null }));
+    const [flag] = flagsFor(line({ certifications }));
+    expect(flag).toMatchObject({ severity: "warning", field: "certifications" });
+    expect(flag.message).toContain("AMS 4010, AMS 4011 go in the job detail");
+  });
+
   it("warns on unusual plate thickness", () => {
     expect(summary(flagsFor(line({ thickness_in: known(8) })))).toEqual(["warning:L1:thickness_in"]);
     expect(summary(flagsFor(line({ thickness_in: known(0.063) })))).toEqual(["warning:L1:thickness_in"]);
@@ -85,6 +113,17 @@ describe("validate", () => {
     expect(check("2026-10-05")).toEqual(["warning:-:required_date"]);
     expect(check("2026-10-06")).toEqual([]);
     expect(check("next week")).toEqual(["warning:-:required_date"]);
+  });
+
+  it("says a need-by date has passed instead of calling it tight", () => {
+    const [flag] = validate(rfq({ required_date: known("2026-09-30") }), catalog, TODAY);
+    expect(flag).toMatchObject({ id: "rules:header:required_date:date-past", severity: "warning" });
+    expect(flag.message).toBe("Need-by 2026-09-30 has already passed. Check the date.");
+  });
+
+  it("doesn't accept a calendar day that doesn't exist", () => {
+    const [flag] = validate(rfq({ required_date: known("2026-11-31") }), catalog, TODAY);
+    expect(flag).toMatchObject({ id: "rules:header:required_date:date-unparsed" });
   });
 
   it("errors when no lines were found", () => {
