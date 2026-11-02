@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { HttpError } from "@/lib/errors";
-import { errorResponse } from "@/lib/http";
+import { assertSameOrigin, errorResponse } from "@/lib/http";
 import { fromFile, fromText, type RfqInput } from "@/lib/input";
 import { parseRfq } from "@/lib/parse";
 import { assertLocalRequest } from "@/lib/chatgpt-auth";
@@ -12,6 +12,7 @@ export const maxDuration = 300;
 
 export async function POST(request: Request) {
   try {
+    assertSameOrigin(request);
     if (!config.mockLlm && (await llmSettings()).provider === "chatgpt") assertLocalRequest(request, true);
     const fresh = new URL(request.url).searchParams.get("fresh") === "1";
     return NextResponse.json(await parseRfq(await readInput(request), { fresh }));
