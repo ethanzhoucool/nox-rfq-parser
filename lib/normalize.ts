@@ -22,6 +22,7 @@ export function normalize(input: ExtractedRfq, catalog: Catalog): { rfq: Extract
     rfq.mill_certs_required = { value: true, confidence: "medium", source: snippet(ctx.headerText, MILL_CERTS) };
   }
 
+  assignUniqueRefs(rfq.lines, ctx);
   for (const line of rfq.lines) {
     splitGluedTemper(line);
     applySpecCallouts(line, ctx);
@@ -31,6 +32,37 @@ export function normalize(input: ExtractedRfq, catalog: Catalog): { rfq: Extract
     mapToStockedTemper(line, ctx);
   }
   return { rfq, flags: ctx.flags };
+}
+
+/**
+ * The editor, the flags and the payload all identify a line by its ref, so two lines sharing one
+ * would be edited, removed and held back together. A repeated ref gets a suffix and a flag; a blank
+ * ref gets its position.
+ */
+function assignUniqueRefs(lines: ExtractedLine[], ctx: Context) {
+  const taken = new Set(lines.map((line) => line.ref.trim()).filter(Boolean));
+  const used = new Set<string>();
+  lines.forEach((line, index) => {
+    const original = line.ref.trim();
+    let ref = original || `L${index + 1}`;
+    if (used.has(ref) || (!original && taken.has(ref))) {
+      const base = ref;
+      for (let n = 2; used.has(ref) || taken.has(ref); n++) ref = `${base}-${n}`;
+      if (original) {
+        ctx.flags.push(
+          ruleFlag("duplicate-ref", {
+            severity: "warning",
+            line_ref: ref,
+            field: null,
+            message: `The document numbers more than one line ${original}; this one is shown as line ${ref}.`,
+            suggested_question: `Your document lists line ${original} more than once. Do you need each of them, or does one replace another?`,
+          }),
+        );
+      }
+    }
+    used.add(ref);
+    line.ref = ref;
+  });
 }
 
 function splitGluedTemper(line: ExtractedLine) {

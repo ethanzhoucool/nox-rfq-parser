@@ -1,7 +1,7 @@
 import { addBusinessDays, isIsoDate } from "./dates";
 import { ruleFlag } from "./flags";
 import { findMaterial, stockPlateThicknesses, stocksTemper } from "./materials";
-import type { Catalog, ExtractedLine, ExtractedRfq, Field, Flag, MaterialDto } from "./schema";
+import type { Catalog, DimensionField, ExtractedLine, ExtractedRfq, Field, Flag, MaterialDto } from "./schema";
 import { DIMENSION_LABELS, describeForm, effectiveShape, requiredDimensions } from "./shapes";
 import { capitalize } from "./text";
 
@@ -32,7 +32,7 @@ const LINE_FIELD_LABELS = {
 } as const;
 
 export function validate(rfq: ExtractedRfq, catalog: Catalog, today: string): Flag[] {
-  return [...validateHeader(rfq, today), ...rfq.lines.flatMap((line) => validateLine(line, catalog))];
+  return [...validateHeader(rfq, today), ...rfq.lines.flatMap((line) => validateLine(line, catalog)), ...duplicateLines(rfq.lines)];
 }
 
 function validateHeader(rfq: ExtractedRfq, today: string): Flag[] {
@@ -300,6 +300,45 @@ function notStocked(line: ExtractedLine): Flag[] {
     );
   }
   return flags;
+}
+
+/** A line that repeats an earlier one (same part, material and size) is usually a re-sent or carried-over line. */
+function duplicateLines(lines: ExtractedLine[]): Flag[] {
+  const first = new Map<string, ExtractedLine>();
+  return lines.flatMap((line) => {
+    const signature = lineSignature(line);
+    if (!signature) return [];
+    const original = first.get(signature);
+    if (!original) {
+      first.set(signature, line);
+      return [];
+    }
+    const form = describeForm(line.product_type.value!, effectiveShape(line)!);
+    const qty = (l: ExtractedLine) => (l.quantity.value === null ? "no qty" : `qty ${l.quantity.value}`);
+    return [
+      ruleFlag("duplicate", {
+        severity: "warning",
+        line_ref: line.ref,
+        field: null,
+        message: `Same part, material and size as line ${original.ref}. Confirm both are needed, or combine them.`,
+        suggested_question: `Lines ${original.ref} and ${line.ref} are the same ${line.alloy.value} ${form} (${qty(original)} and ${qty(line)}). Do you need both, or is one a repeat?`,
+      }),
+    ];
+  });
+}
+
+function lineSignature(line: ExtractedLine): string | null {
+  const shape = effectiveShape(line);
+  const dimensions = (Object.keys(DIMENSION_LABELS) as DimensionField[]).map((name) => line[name].value);
+  if (!line.alloy.value || !line.product_type.value || !shape || dimensions.every((d) => d === null)) return null;
+  return JSON.stringify([
+    line.alloy.value.trim().toUpperCase(),
+    line.temper.value?.trim().toUpperCase() ?? null,
+    line.product_type.value,
+    shape,
+    ...dimensions,
+    line.customer_part_number.value?.trim().toUpperCase() ?? null,
+  ]);
 }
 
 function lowConfidence(lineRef: string | null, name: string, label: string, field: Field<unknown>): Flag[] {
