@@ -336,11 +336,12 @@ export function lineWeight(line: ExtractedLine, catalog: Catalog, quantity = lin
   return volume === null ? null : volume * material.density * quantity;
 }
 
+/** The form's dimensions, plus any other dimension that has a value, so a value the payload won't carry can be seen and cleared. */
 function sizeFields(line: ExtractedLine): DimensionField[] {
   const productType = line.product_type.value;
   const shape = effectiveShape(line);
   const required = productType && shape ? requiredDimensions(productType, shape) : null;
-  if (required) return required;
   const present = (Object.keys(DIM_ABBREVIATION) as DimensionField[]).filter((dim) => line[dim].value !== null);
+  if (required) return [...required, ...present.filter((dim) => !required.includes(dim))];
   return present.length ? present : ["thickness_in", "width_in", "length_in"];
 }
