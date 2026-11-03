@@ -16,6 +16,9 @@ export function addBusinessDays(isoDate: string, days: number): string {
   return date.toISOString().slice(0, 10);
 }
 
+/** yyyy-mm-dd naming a real calendar day; Date.parse alone accepts 2026-02-30. */
 export function isIsoDate(value: string): boolean {
-  return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value));
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }

@@ -65,6 +65,27 @@ describe("normalize", () => {
     expect(flags).toContainEqual(expect.objectContaining({ field: "thickness_in", message: expect.stringContaining("reordered") }));
   });
 
+  it("leaves inch dimensions alone when the source also gives them in mm", () => {
+    const source = "0.500 x 12.000 x 24.000 in (12.7 x 305 x 610 mm)";
+    const { line: result, flags } = normalizeLine({
+      thickness_in: known(0.5, source),
+      width_in: known(12, source),
+      length_in: known(24, source),
+    });
+    expect([result.thickness_in.value, result.width_in.value, result.length_in.value]).toEqual([0.5, 12, 24]);
+    expect(flags).toEqual([]);
+    expect(normalizeLine({ thickness_in: known(0.5, '0.500" (12.7 mm)') }).line.thickness_in.value).toBe(0.5);
+  });
+
+  it("converts mm written with a decimal comma or thousands separator", () => {
+    const { line: result } = normalizeLine({
+      thickness_in: known(12.7, "12,7 mm"),
+      width_in: known(1200, "1,200 mm"),
+      length_in: known(2400, "2400 mm"),
+    });
+    expect([result.thickness_in.value, result.width_in.value, result.length_in.value]).toEqual([0.5, 47.2441, 94.4882]);
+  });
+
   it("puts the smallest plate dimension in thickness", () => {
     const { line: result } = normalizeLine({ thickness_in: known(12), width_in: known(0.5), length_in: known(24) });
     expect([result.thickness_in.value, result.width_in.value, result.length_in.value]).toEqual([0.5, 12, 24]);
@@ -90,6 +111,24 @@ describe("normalize", () => {
     expect(normalizeLine({}, "certs pls").rfq.mill_certs_required.value).toBe(true);
     expect(normalizeLine({}, "MTR required").rfq.mill_certs_required.value).toBe(true);
     expect(normalizeLine({}, "thanks").rfq.mill_certs_required.value).toBeNull();
+  });
+
+  it("gives every line its own ref and flags refs the document repeats", () => {
+    const { rfq: result, flags } = normalize(
+      rfq({ lines: [line({ ref: "10" }), line({ ref: "20" }), line({ ref: "10" }), line({ ref: "10-2" }), line({ ref: " " })] }),
+      catalog,
+    );
+    expect(result.lines.map((l) => l.ref)).toEqual(["10", "20", "10-3", "10-2", "L5"]);
+    expect(flags).toEqual([
+      expect.objectContaining({ id: "rules:10-3:general:duplicate-ref", severity: "warning", line_ref: "10-3", field: null }),
+    ]);
+    expect(flags[0].suggested_question).toContain("lists line 10 more than once");
+  });
+
+  it("doesn't let a blank ref take a ref the document uses later", () => {
+    const { rfq: result, flags } = normalize(rfq({ lines: [line({ ref: "" }), line({ ref: "L1" })] }), catalog);
+    expect(result.lines.map((l) => l.ref)).toEqual(["L1-2", "L1"]);
+    expect(flags).toEqual([]);
   });
 
   it("does not mutate its input", () => {
