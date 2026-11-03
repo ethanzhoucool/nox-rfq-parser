@@ -1,7 +1,8 @@
 import { effectiveShape, requiredDimensions } from "./shapes";
 import { DIMENSION_FIELDS, type CreateRfqDto, type DimensionField, type ExtractedLine, type ExtractedRfq, type RfqLineDto } from "./schema";
 
-const MAX_CERTIFICATIONS = 10;
+/** The API's limit per line. validate flags any overflow, which goes in job_detail instead. */
+export const MAX_CERTIFICATIONS = 10;
 
 const DTO_DIMENSION: Record<DimensionField, keyof RfqLineDto> = {
   thickness_in: "thickness",
@@ -77,6 +78,8 @@ function buildJobDetail(line: ExtractedLine, rfq: ExtractedRfq): string | null {
     rfq.po_number.value && `PO ${rfq.po_number.value}`,
     line.customer_part_number.value && `Cust P/N ${line.customer_part_number.value}`,
     line.cut_tolerance.value && `Cut tol ${line.cut_tolerance.value}`,
+    line.certifications.length > MAX_CERTIFICATIONS &&
+      `Also certify to ${line.certifications.slice(MAX_CERTIFICATIONS).map((cert) => cert.designation).join(", ")}`,
     rfq.required_date.value && `Need by ${rfq.required_date.value}`,
     rfq.mill_certs_required.value && "Mill certs (MTR) required",
     line.notes,

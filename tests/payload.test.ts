@@ -75,8 +75,10 @@ describe("buildPayload", () => {
     expect(buildPayload(rfq({ lines: [line({ alloy: unknown() }), line({ ref: "L2", quantity: unknown() })] })).lines).toEqual([]);
   });
 
-  it("caps certifications at 10 per line", () => {
+  it("caps certifications at 10 per line and keeps the rest in the job detail", () => {
     const certifications = Array.from({ length: 12 }, (_, i) => ({ family: "AMS" as const, designation: `AMS ${4000 + i}`, source: null }));
-    expect(buildPayload(rfq({ lines: [line({ certifications })] })).lines[0].certifications).toHaveLength(10);
+    const [dto] = buildPayload(rfq({ lines: [line({ certifications })] })).lines;
+    expect(dto.certifications).toHaveLength(10);
+    expect(dto.job_detail).toBe("Also certify to AMS 4010, AMS 4011");
   });
 });
