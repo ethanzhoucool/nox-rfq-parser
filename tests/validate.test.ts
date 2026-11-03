@@ -126,6 +126,23 @@ describe("validate", () => {
     expect(flag).toMatchObject({ id: "rules:header:required_date:date-unparsed" });
   });
 
+  it("warns when a line repeats an earlier one", () => {
+    const flags = flagsFor(line(), line({ ref: "L2" }), line({ ref: "L3", quantity: known(4) }));
+    expect(summary(flags)).toEqual(["warning:L2:null", "warning:L3:null"]);
+    expect(flags[1].message).toContain("Same part, material and size as line L1");
+    expect(flags[1].suggested_question).toBe(
+      "Lines L1 and L3 are the same 6061 plate (qty 10 and qty 4). Do you need both, or is one a repeat?",
+    );
+  });
+
+  it("doesn't flag lines that differ in size, temper or part number", () => {
+    expect(flagsFor(line(), line({ ref: "L2", length_in: known(36) }))).toEqual([]);
+    expect(flagsFor(line(), line({ ref: "L2", alloy: known("7075") }))).toEqual([]);
+    expect(
+      flagsFor(line({ customer_part_number: known("BRK-1") }), line({ ref: "L2", customer_part_number: known("BRK-2") })),
+    ).toEqual([]);
+  });
+
   it("errors when no lines were found", () => {
     expect(summary(validate(rfq({ lines: [] }), catalog, TODAY))).toEqual(["error:-:lines"]);
   });
