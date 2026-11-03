@@ -6,7 +6,7 @@ import { worstSeverity } from "@/lib/flags";
 import { findMaterial, stockPlateThicknesses } from "@/lib/materials";
 import type { Catalog, ExtractedLine, Flag } from "@/lib/schema";
 import { effectiveShape, requiredDimensions } from "@/lib/shapes";
-import { parseMeasurement } from "@/lib/units";
+import { parseMeasurement, parseQuantity as parseQuantityText } from "@/lib/units";
 import { COMPLIANCE, type DimensionField, type ProductType, type Shape } from "@/lib/vocabulary";
 import { EditableSelect, EditableText } from "./EditableField";
 import { FlagBadge } from "./FlagsPanel";
@@ -40,10 +40,7 @@ const formatNumber = (value: number) => String(Number(value.toFixed(4)));
 const parseText = (text: string) => text.trim();
 const parseAlloy = (text: string) => text.trim().toUpperCase();
 const parseInches = (text: string) => parseMeasurement(text)?.inches;
-const parseQuantity = (text: string) => {
-  const quantity = Number(text.replace(/[^\d.]/g, ""));
-  return Number.isFinite(quantity) && quantity > 0 ? quantity : undefined;
-};
+const parseQuantity = (text: string) => parseQuantityText(text) ?? undefined;
 const formatPounds = (pounds: number) => pounds.toLocaleString(undefined, { maximumFractionDigits: 1, minimumFractionDigits: 1 });
 const formatInches = (inches: number) => `${formatNumber(inches)}"`;
 
