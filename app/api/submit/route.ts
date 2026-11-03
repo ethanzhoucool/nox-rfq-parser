@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { HttpError } from "@/lib/errors";
-import { errorResponse } from "@/lib/http";
+import { assertSameOrigin, errorResponse } from "@/lib/http";
 import { submitRfq } from "@/lib/nox";
 import type { CreateRfqDto } from "@/lib/schema";
 
@@ -8,6 +8,7 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
+    assertSameOrigin(request);
     const body = (await request.json().catch(() => null)) as { payload?: CreateRfqDto } | null;
     const payload = body?.payload;
     if (!payload || !Array.isArray(payload.lines) || payload.lines.length === 0) {
