@@ -1,5 +1,6 @@
 import { effectiveShape, requiredDimensions } from "./shapes";
-import { DIMENSION_FIELDS, type CreateRfqDto, type DimensionField, type ExtractedLine, type ExtractedRfq, type RfqLineDto } from "./schema";
+import type { CreateRfqDto, ExtractedLine, ExtractedRfq, RfqLineDto } from "./schema";
+import { DIMENSION_FIELDS, type DimensionField } from "./vocabulary";
 
 /** The API's limit per line. validate flags any overflow, which goes in job_detail instead. */
 export const MAX_CERTIFICATIONS = 10;
