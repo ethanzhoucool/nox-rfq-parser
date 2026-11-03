@@ -4,7 +4,7 @@ import { DIMENSION_FIELDS, type Catalog, type Confidence, type ExtractedLine, ty
 import { DIMENSION_LABELS } from "./shapes";
 import { canonicalDesignation, lookupSpec } from "./specs";
 import { capitalize } from "./text";
-import { MM_PER_INCH, millimetreValues, roundInches } from "./units";
+import { MM_PER_INCH, millimetreSource, roundInches } from "./units";
 
 const DFARS = /dfars|domestic(ally)?[\s-]+melt|melted (and manufactured )?in (the )?(usa|u\.?s\.?a?\.?|united states)|252\.225-7009|specialty metals clause/i;
 const DOMESTIC = /\b(domestic|usa origin|made in (the )?usa|u\.?s\.? origin)\b/i;
@@ -112,11 +112,8 @@ function convertMetric(line: ExtractedLine, ctx: Context) {
     const dim = line[name];
     if (dim.value === null || !dim.source) continue;
 
-    const mmValues = millimetreValues(dim.source);
-    const unconverted = mmValues.find((mm) => Math.abs(mm - dim.value!) < 0.01);
-    const converted = mmValues.find((mm) => Math.abs(mm / MM_PER_INCH - dim.value!) < 0.02);
-    const mm = unconverted ?? converted;
-    if (mm === undefined) continue;
+    const mm = millimetreSource(dim.value, dim.source);
+    if (mm === null) continue;
 
     const inches = roundInches(mm / MM_PER_INCH);
     line[name] = { ...dim, value: inches };
